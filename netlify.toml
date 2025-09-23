@@ -1,6 +1,8 @@
 [build]
+  base = "."
   publish = "."
   command = "echo 'No build step needed for static site'"
+  ignore = "exit 0"
 
 [[redirects]]
   from = "/api/*"
