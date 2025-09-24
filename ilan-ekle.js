@@ -1,180 +1,225 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Form ve adım elementleri
-    const form = document.getElementById('ilanForm');
-    const steps = document.querySelectorAll('.step');
-    const stepCards = document.querySelectorAll('.step-card');
-    let currentStep = 1;
-    let map, marker;
+import { supabase, getCurrentUser, uploadMultipleImages, saveImageToDatabase } from './supabase-config.js';
 
-    // Harita başlatma
-    function initMap() {
-        // Kulu'nun yaklaşık koordinatları
-        const kuluCoords = [39.0951, 33.0794];
-        
-        map = L.map('map').setView(kuluCoords, 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        // Haritaya tıklama olayı
-        map.on('click', function(e) {
-            const { lat, lng } = e.latlng;
-            
-            // Önceki marker'ı kaldır
-            if (marker) {
-                map.removeLayer(marker);
-            }
-            
-            // Yeni marker ekle
-            marker = L.marker([lat, lng]).addTo(map);
-            
-            // Form alanlarını güncelle
-            document.querySelector('input[name="latitude"]').value = lat;
-            document.querySelector('input[name="longitude"]').value = lng;
-            
-            // Hata mesajını temizle
-            document.querySelector('#step3 .error-message').textContent = '';
-        });
-    }
-
-    // Adım geçişleri
-    function showStep(stepNumber) {
-        stepCards.forEach(card => card.classList.remove('active'));
-        document.getElementById(`step${stepNumber}`).classList.add('active');
-        
-        steps.forEach(step => {
-            const stepNum = parseInt(step.dataset.step);
-            step.classList.remove('active', 'completed');
-            if (stepNum === stepNumber) {
-                step.classList.add('active');
-            } else if (stepNum < stepNumber) {
-                step.classList.add('completed');
-            }
-        });
-
-        currentStep = stepNumber;
-    }
-
-    // Form validasyonu
-    function validateStep(stepNumber) {
-        const currentCard = document.getElementById(`step${stepNumber}`);
-        const inputs = currentCard.querySelectorAll('input[required], select[required], textarea[required]');
-        let isValid = true;
-        let errorMessage = '';
-
-        inputs.forEach(input => {
-            if (!input.value) {
-                isValid = false;
-                errorMessage = 'Lütfen tüm zorunlu alanları doldurun.';
-            }
-        });
-
-        // Özel validasyonlar
-        if (stepNumber === 3) {
-            const lat = document.querySelector('input[name="latitude"]').value;
-            const lng = document.querySelector('input[name="longitude"]').value;
-            if (!lat || !lng) {
-                isValid = false;
-                errorMessage = 'Lütfen haritadan bir konum seçin.';
-            }
+// İlan verilerini Supabase'e kaydetme fonksiyonu
+export async function saveData(formData) {
+    try {
+        // Kullanıcının oturum açmış olup olmadığını kontrol et
+        const user = await getCurrentUser();
+        if (!user) {
+            throw new Error('Lütfen önce giriş yapın.');
         }
 
-        if (!isValid) {
-            currentCard.querySelector('.error-message').textContent = errorMessage;
-        } else {
-            currentCard.querySelector('.error-message').textContent = '';
+        // FormData'dan veri objesi oluştur
+        const ilanData = {
+            user_id: user.id,
+            baslik: formData.get('baslik'),
+            aciklama: formData.get('aciklama'),
+            fiyat: parseInt(formData.get('fiyat').replace(/\D/g, ''), 10),
+            telefon: formData.get('telefon'),
+            mahalle: formData.get('mahalle'),
+            kategori: formData.get('kategori'),
+            alt_kategori: formData.get('alt_kategori'),
+            konum: formData.get('mahalle'),
+            metrekare: formData.get('metrekare') ? parseInt(formData.get('metrekare')) : null,
+            oda_sayisi: formData.get('oda_sayisi'),
+            isitma_tipi: formData.get('isitma_tipi'),
+            bina_yasi: formData.get('bina_yasi') ? parseInt(formData.get('bina_yasi')) : null,
+            kat: formData.get('kat'),
+            aidat: formData.get('aidat') ? parseInt(formData.get('aidat')) : null,
+            depozito: formData.get('depozito') ? parseInt(formData.get('depozito')) : null,
+            esya_durumu: formData.get('esya_durumu'),
+            imar_durumu: formData.get('imar_durumu'),
+            tapu_durumu: formData.get('tapu_durumu'),
+            created_at: new Date().toISOString(),
+            onayli: false
+        };
+
+        // Supabase'e İlan verisini kaydet
+        const { data, error } = await supabase
+            .from('ilanlar')
+            .insert([ilanData])
+            .select();
+
+        if (error) {
+            throw error;
         }
 
-        return isValid;
-    }
+        const savedIlan = data[0];
+        console.log('İlan başarıyla kaydedildi:', savedIlan);
 
-    // Medya yükleme işlemleri
-    const medyaEkleCheckbox = document.getElementById('medyaEkle');
-    const medyaYuklemeDiv = document.getElementById('medyaYukleme');
-    const previewDiv = document.getElementById('preview');
-
-    medyaEkleCheckbox.addEventListener('change', function() {
-        medyaYuklemeDiv.style.display = this.checked ? 'block' : 'none';
-    });
-
-    document.querySelector('input[name="medya"]').addEventListener('change', function(e) {
-        previewDiv.innerHTML = '';
-        const files = e.target.files;
-
-        for (let file of files) {
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'preview-image';
-                    previewDiv.appendChild(img);
+        // Resim dosyaları varsa yükle
+        const resimFiles = formData.getAll('medya').filter(file => file && file.size > 0);
+        if (resimFiles.length > 0) {
+            console.log('Resimler yüklenmeye başlanıyor...', resimFiles.length, 'adet');
+            
+            try {
+                const uploadResult = await uploadMultipleImages(resimFiles, user.id, savedIlan.id);
+                
+                if (uploadResult.successful && uploadResult.successful.length > 0) {
+                    // Başarılı yüklenen resimleri database'e kaydet
+                    for (let i = 0; i < uploadResult.successful.length; i++) {
+                        const upload = uploadResult.successful[i];
+                        const resim = resimFiles[i];
+                        
+                        await saveImageToDatabase(
+                            savedIlan.id,
+                            upload.data.publicUrl,
+                            resim.name,
+                            i + 1
+                        );
+                    }
+                    
+                    console.log(`${uploadResult.successCount}/${uploadResult.totalCount} resim başarıyla yüklendi.`);
                 }
-                reader.readAsDataURL(file);
+                
+                if (uploadResult.failed && uploadResult.failed.length > 0) {
+                    console.warn(`${uploadResult.failedCount} resim yüklenemedi:`, uploadResult.failed);
+                }
+            } catch (uploadError) {
+                console.error('Resim yükleme hatası:', uploadError);
+                // Resim yükleme hatası olsa bile ilanı kaydetmiş olduğumuz için devam edelim
             }
         }
-    });
 
-    // Adım geçiş butonları
-    document.querySelectorAll('.next-step').forEach(button => {
-        button.addEventListener('click', function() {
-            const stepNumber = parseInt(this.closest('.step-card').id.replace('step', ''));
-            if (validateStep(stepNumber)) {
-                showStep(stepNumber + 1);
-            }
-        });
-    });
+        return savedIlan;
 
-    document.querySelectorAll('.prev-step').forEach(button => {
-        button.addEventListener('click', function() {
-            const stepNumber = parseInt(this.closest('.step-card').id.replace('step', ''));
-            showStep(stepNumber - 1);
-        });
-    });
+    } catch (error) {
+        console.error('İlan kaydetme hatası:', error);
+        throw error;
+    }
+}
 
-    // Form gönderimi
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
+// Tüm ilanları getirme fonksiyonu (resimlerle birlikte)
+export async function getIlanlar() {
+    try {
+        const { data, error } = await supabase
+            .from('ilanlar')
+            .select(`
+                *,
+                ilan_resimleri (
+                    id,
+                    resim_url,
+                    resim_adi,
+                    sira_no
+                ),
+                kullanici_profilleri (
+                    ad_soyad,
+                    telefon
+                )
+            `)
+            .eq('onayli', true)
+            .order('created_at', { ascending: false });
 
-        if (!validateStep(currentStep)) {
-            return;
+        if (error) {
+            throw error;
         }
 
-        try {
-            const formData = new FormData(this);
-            const hasMedya = medyaEkleCheckbox.checked && formData.get('medya').size > 0;
+        return data;
+    } catch (error) {
+        console.error('İlanları getirme hatası:', error);
+        throw error;
+    }
+}
 
-            // Save to Firestore
-            const savedIlan = await saveData(formData);
-            
-            if (!savedIlan) {
-                throw new Error('İlan kaydedilemedi.');
-            }
-
-            // If there are media files, handle them separately
-            if (hasMedya) {
-                // Here you would typically upload the media files to storage
-                // and update the document with the media URLs
-                alert('❗️ Medya yükleme özelliği yakında eklenecektir.');
-            } else {
-                alert('❗️ Bu ilan henüz görsel içermemektedir. 24 saat içinde görsel eklemezseniz ilan pasif duruma alınacaktır.');
-            }
-
-            alert('İlanınız başarıyla eklendi!');
-            window.location.href = '/'; // Ana sayfaya yönlendir
-
-        } catch (error) {
-            console.error('İlan ekleme hatası:', error);
-            alert(error.message || 'İlan eklenirken bir hata oluştu.');
+// Kullanıcının ilanlarını getirme fonksiyonu (resimlerle birlikte)
+export async function getKullaniciIlanlari() {
+    try {
+        const user = await getCurrentUser();
+        if (!user) {
+            throw new Error('Kullanıcı girişi yapılmamış.');
         }
-    });
 
-    // Haritayı başlat
-    initMap();
-}); 
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "./firebase-config.js";
-import { auth } from "./firebase-config.js";
+        const { data, error } = await supabase
+            .from('ilanlar')
+            .select(`
+                *,
+                ilan_resimleri (
+                    id,
+                    resim_url,
+                    resim_adi,
+                    sira_no
+                )
+            `)
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            throw error;
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Kullanıcı ilanlarını getirme hatası:', error);
+        throw error;
+    }
+}
+
+// İlan silme fonksiyonu
+export async function deleteIlan(ilanId) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) {
+            throw new Error('Kullanıcı girişi yapılmamış.');
+        }
+
+        // Önce ilanın kullanıcıya ait olup olmadığını kontrol et
+        const { data: ilan, error: checkError } = await supabase
+            .from('ilanlar')
+            .select('user_id')
+            .eq('id', ilanId)
+            .single();
+
+        if (checkError) {
+            throw checkError;
+        }
+
+        if (ilan.user_id !== user.id) {
+            throw new Error('Bu ilanı silme yetkiniz yok.');
+        }
+
+        // İlanı sil (RLS politikası sayesinde CASCADE ile resimler de silinecek)
+        const { error } = await supabase
+            .from('ilanlar')
+            .delete()
+            .eq('id', ilanId);
+
+        if (error) {
+            throw error;
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.error('İlan silme hatası:', error);
+        throw error;
+    }
+}
+
+// İlan güncelleme fonksiyonu
+export async function updateIlan(ilanId, updateData) {
+    try {
+        const user = await getCurrentUser();
+        if (!user) {
+            throw new Error('Kullanıcı girişi yapılmamış.');
+        }
+
+        const { data, error } = await supabase
+            .from('ilanlar')
+            .update(updateData)
+            .eq('id', ilanId)
+            .eq('user_id', user.id)
+            .select();
+
+        if (error) {
+            throw error;
+        }
+
+        return data[0];
+    } catch (error) {
+        console.error('İlan güncelleme hatası:', error);
+        throw error;
+    }
+} 
+
 
 /**
  * Fetches all listings from Firestore and displays them in the ilanListesi div
@@ -245,12 +290,6 @@ async function getIlanlar() {
     }
 }
 
-// ... existing code ...
-
-import { collection, addDoc, getDocs } from "firebase/firestore";
-import { db } from "./firebase-config.js";
-import { auth } from "./firebase-config.js";
-
 /**
  * Saves a new listing to Firestore with user UID
  * @param {Object} formData - Form data containing listing details
@@ -317,7 +356,7 @@ async function saveData(formData = null) {
 // Export the functions
 export { getIlanlar, saveData };
 
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
 import { db, auth } from "./firebase-config.js";
 
 /**

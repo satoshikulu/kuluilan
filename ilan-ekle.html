@@ -406,7 +406,10 @@
         </div>
     </div>
 
-    <script>
+    <!-- Firebase ve ilan-ekle.js dosyasını import et -->
+    <script type="module">
+        import { saveData } from './ilan-ekle.js';
+        
         document.addEventListener('DOMContentLoaded', function() {
             const mainCategories = document.getElementById('mainCategories');
             const subCategories = document.getElementById('subCategories');
@@ -457,34 +460,34 @@
                     // Nokta ve virgül temizle, düz sayı yap
                     let fiyatNumber = parseInt(fiyatInput.replace(/\D/g, ''), 10);
                     
-                    const formData = {
-                        ad: document.getElementById('baslik').value,
-                        aciklama: document.getElementById('aciklama').value,
-                        mahalle: document.getElementById('mahalle').value,
-                        fiyat: fiyatNumber,
-                        telefon: document.getElementById('telefon').value,
-                        kategori: `${selectedCategory}-${selectedSubCategory}`,
-                        konum: document.getElementById('mahalle').value // Mahalle bilgisini konum olarak da kullan
-                    };
-
-                    console.log('İlan Bilgileri:', formData);
-
-                    // Backend API'ye gönder
-                    const response = await fetch('/api/ilanlar', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('supabase_token')}` // Supabase token'ı
-                        },
-                        body: JSON.stringify(formData)
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'İlan eklenirken bir hata oluştu');
+                    // FormData objesi oluştur
+                    const formData = new FormData();
+                    formData.append('baslik', document.getElementById('baslik').value);
+                    formData.append('aciklama', document.getElementById('aciklama').value);
+                    formData.append('mahalle', document.getElementById('mahalle').value);
+                    formData.append('fiyat', fiyatNumber);
+                    formData.append('telefon', document.getElementById('telefon').value);
+                    formData.append('kategori', selectedCategory);
+                    formData.append('alt_kategori', selectedSubCategory);
+                    formData.append('konum', document.getElementById('mahalle').value);
+                    
+                    // Resim dosyalarını ekle
+                    const resimInput = document.getElementById('resimler');
+                    if (resimInput.files.length > 0) {
+                        for (let i = 0; i < resimInput.files.length; i++) {
+                            formData.append('medya', resimInput.files[i]);
+                        }
                     }
 
-                    const result = await response.json();
+                    console.log('İlan gönderiliyor...');
+
+                    // Firebase ile kaydet
+                    const result = await saveData(formData);
+                    
+                    if (!result) {
+                        throw new Error('İlan kaydedilemedi.');
+                    }
+
                     console.log('İlan başarıyla eklendi:', result);
 
                     // Formu gizle ve başarı mesajını göster
@@ -505,7 +508,13 @@
                         margin-top: 1rem;
                         text-align: center;
                     `;
-                    errorMessage.textContent = `Hata: ${error.message}`;
+                    errorMessage.textContent = `Hata: ${error.message || 'İlan eklenirken bir hata oluştu.'}`;
+                    
+                    // Önceki hata mesajını kaldır
+                    const existingError = ilanForm.querySelector('[style*="background: #f8d7da"]');
+                    if (existingError) {
+                        existingError.remove();
+                    }
                     
                     ilanForm.appendChild(errorMessage);
                     
@@ -545,6 +554,9 @@
             // Türkçe locale ile sadece binlik ayraç (nokta) ekle
             input.value = intValue.toLocaleString('tr-TR');
         }
+        
+        // formatFiyatInput fonksiyonunu global yap
+        window.formatFiyatInput = formatFiyatInput;
     </script>
 </body>
 </html> 

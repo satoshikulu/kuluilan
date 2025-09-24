@@ -1,43 +1,6 @@
-import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from './firebase-config.js';
+import { supabase, signIn, signUp, signOut, getCurrentUser } from './supabase-config.js';
 
-// Initialize Firebase Authentication
-const auth = getAuth();
-
-// Firebase Authentication functions
-async function login(email, password) {
-    try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        console.log("Giriş başarılı:", userCredential.user);
-        return {
-            success: true,
-            user: userCredential.user
-        };
-    } catch (error) {
-        console.error("Giriş hatası:", error.message);
-        return {
-            success: false,
-            error: error.message
-        };
-    }
-}
-
-async function register(email, password) {
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        console.log("Kayıt başarılı:", userCredential.user);
-        return {
-            success: true,
-            user: userCredential.user
-        };
-    } catch (error) {
-        console.error("Kayıt hatası:", error.message);
-        return {
-            success: false,
-            error: error.message
-        };
-    }
-}
-
+// Supabase Authentication functions
 /**
  * Kullanıcı kayıt fonksiyonu
  * @param {string} email - Kullanıcının email adresi
@@ -45,12 +8,20 @@ async function register(email, password) {
  * @returns {Promise} Kayıt işleminin sonucunu içeren Promise
  */
 function register(email, password) {
-    return createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-            console.log("Kayıt başarılı:", userCredential.user);
+    return signUp(email, password)
+        .then(({ data, error }) => {
+            if (error) {
+                console.error("Kayıt hatası:", error.message);
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+            
+            console.log("Kayıt başarılı:", data.user);
             return {
                 success: true,
-                user: userCredential.user
+                user: data.user
             };
         })
         .catch((error) => {
@@ -69,9 +40,17 @@ function register(email, password) {
  * @returns {Promise} Giriş işleminin sonucunu içeren Promise
  */
 function login(email, password) {
-    return signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-            console.log("Giriş başarılı:", userCredential.user);
+    return signIn(email, password)
+        .then(({ data, error }) => {
+            if (error) {
+                console.error("Giriş hatası:", error.message);
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+            
+            console.log("Giriş başarılı:", data.user);
             // Admin kontrolü
             if (email === 'satoshinakamototokyo42@gmail.com') {
                 // Admin dashboard'a yönlendir
@@ -82,7 +61,7 @@ function login(email, password) {
             }
             return {
                 success: true,
-                user: userCredential.user
+                user: data.user
             };
         })
         .catch((error) => {
@@ -92,6 +71,32 @@ function login(email, password) {
                 error: error.message
             };
         });
+}
+
+// Oturumu kapatma fonksiyonu
+async function logout() {
+    try {
+        const { error } = await signOut();
+        if (error) {
+            console.error("Çıkış hatası:", error.message);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+        
+        console.log("Başarıyla çıkış yapıldı");
+        window.location.href = '/index.html';
+        return {
+            success: true
+        };
+    } catch (error) {
+        console.error("Çıkış hatası:", error.message);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
 }
 
 // Form submit işleyicisi örneği - Kayıt
@@ -139,55 +144,4 @@ function handleLoginFormSubmit(event) {
         });
 }
 
-// Admin şifresini güncelleme fonksiyonu
-async function updateAdminPassword() {
-    const email = 'satoshinakamototokyo42@gmail.com';
-    const newPassword = 'sevimbebe4242';
-    
-    try {
-        const user = await auth.fetchSignInMethodsForEmail(email);
-        if (user.length > 0) {
-            // Şifreyi güncelle
-            const userCredential = await signInWithEmailAndPassword(auth, email, 'mevcut-sifre');
-            await userCredential.user.updatePassword(newPassword);
-            console.log('Şifre güncellendi!');
-        } else {
-            // Kullanıcı yoksa yeni bir hesap oluştur
-            await createUserWithEmailAndPassword(auth, email, newPassword);
-            console.log('Yeni admin hesap oluşturuldu!');
-        }
-    } catch (error) {
-        console.error('Hata:', error.message);
-    }
-}
-
-// Form örnekleri HTML:
-/*
-// Kayıt Formu
-<form id="registerForm" onsubmit="handleRegisterFormSubmit(event)">
-    <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required>
-    </div>
-    <div class="form-group">
-        <label for="password">Şifre</label>
-        <input type="password" id="password" name="password" required>
-    </div>
-    <button type="submit">Kayıt Ol</button>
-</form>
-
-// Giriş Formu
-<form id="loginForm" onsubmit="handleLoginFormSubmit(event)">
-    <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required>
-    </div>
-    <div class="form-group">
-        <label for="password">Şifre</label>
-        <input type="password" id="password" name="password" required>
-    </div>
-    <button type="submit">Giriş Yap</button>
-</form>
-*/
-
-export { register, login, handleRegisterFormSubmit, handleLoginFormSubmit }; 
+export { register, login, logout, handleRegisterFormSubmit, handleLoginFormSubmit };
