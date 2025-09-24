@@ -406,9 +406,9 @@
         </div>
     </div>
 
-    <!-- Firebase ve ilan-ekle.js dosyasını import et -->
+    <!-- Supabase ve ilan.js modülünü kullan -->
     <script type="module">
-        import { saveData } from './ilan-ekle.js';
+        import { saveData } from './ilan.js';
         
         document.addEventListener('DOMContentLoaded', function() {
             const mainCategories = document.getElementById('mainCategories');
@@ -481,7 +481,7 @@
 
                     console.log('İlan gönderiliyor...');
 
-                    // Firebase ile kaydet
+                    // Supabase ile kaydet
                     const result = await saveData(formData);
                     
                     if (!result) {

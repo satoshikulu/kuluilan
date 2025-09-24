@@ -90,70 +90,110 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
-        import { onAuthStateChanged, signOut } from "firebase/auth";
-        import { auth } from './firebase-config.js';
+        import { supabase, getCurrentUser } from './supabase-config.js';
+        import { getKullaniciIlanlari, deleteIlan } from './ilan.js';
 
         const adminEmail = "satoshinakamototokyo42@gmail.com";
 
-        onAuthStateChanged(auth, (user) => {
-            if (!user) {
-                // If not logged in, redirect to home page
-                window.location.href = "/";
-            } else if (user.email === adminEmail) {
-                // If admin, redirect to admin dashboard
-                window.location.href = "/admin.html";
+        async function init() {
+            try {
+                const user = await getCurrentUser();
+                if (!user) {
+                    window.location.href = "/";
+                    return;
+                }
+                if (user.email === adminEmail) {
+                    window.location.href = "/admin.html";
+                    return;
+                }
+                await fetchUserListings();
+            } catch (e) {
+                console.error('Init hata:', e);
             }
-        });
+        }
 
         window.handleLogout = async () => {
             try {
-                await signOut(auth);
+                await supabase.auth.signOut();
                 window.location.href = "/";
             } catch (error) {
                 console.error("Çıkış yapılırken hata oluştu:", error);
+                alert('Çıkış yapılırken hata oluştu.');
             }
         };
 
-        // Fetch user's listings
+        // Kullanıcının ilanlarını getir
         async function fetchUserListings() {
+            const container = document.getElementById('ilanlarContainer');
             try {
-                const response = await fetch('http://localhost:3001/api/ilanlar?onayli=1');
-                const ilanlar = await response.json();
-                displayListings(ilanlar);
+                const { success, data, error } = await getKullaniciIlanlari();
+                if (!success) throw error || new Error('İlanlar alınamadı');
+                displayListings(data || []);
             } catch (error) {
                 console.error('İlanlar yüklenirken hata:', error);
+                container.innerHTML = `<div class="col-12 text-center text-danger">İlanlar yüklenirken bir hata oluştu.</div>`;
             }
         }
 
         function displayListings(ilanlar) {
             const container = document.getElementById('ilanlarContainer');
-            container.innerHTML = ilanlar.map(ilan => `
+            if (!ilanlar || ilanlar.length === 0) {
+                container.innerHTML = `<div class="col-12 text-center text-muted">Henüz ilanınız bulunmuyor.</div>`;
+                return;
+            }
+
+            container.innerHTML = ilanlar.map(ilan => {
+                const firstImage = (ilan.ilan_resimleri && ilan.ilan_resimleri.length > 0)
+                    ? ilan.ilan_resimleri.sort((a,b) => (a.sira_no||1)-(b.sira_no||1))[0].resim_url
+                    : 'https://via.placeholder.com/300x200';
+                const fiyatText = typeof ilan.fiyat === 'number' ? ilan.fiyat.toLocaleString('tr-TR') + ' TL' : 'Fiyat Belirtilmemiş';
+                const konumText = ilan.mahalle ? ilan.mahalle : (ilan.konum || 'Belirtilmemiş');
+
+                return `
                 <div class="col-md-4">
                     <div class="ilan-card">
-                        <img src="${ilan.media ? `http://localhost:3001/uploads/${ilan.media.split(',')[0]}` : 'https://via.placeholder.com/300x200'}" 
-                             class="ilan-image" alt="${ilan.baslik}">
+                        <img src="${firstImage}" class="ilan-image" alt="${ilan.baslik || ''}">
                         <div class="card-body">
-                            <h5 class="card-title">${ilan.baslik}</h5>
-                            <p class="ilan-price">${ilan.fiyat.toLocaleString()} TL</p>
+                            <h5 class="card-title">${ilan.baslik || ''}</h5>
+                            <p class="ilan-price">${fiyatText}</p>
                             <p class="card-text">
-                                <i class="fas fa-map-marker-alt me-1"></i>${ilan.ilce || 'Belirtilmemiş'} ${ilan.mahalle ? `- ${ilan.mahalle}` : ''}
+                                <i class="fas fa-map-marker-alt me-1"></i>${konumText}
                             </p>
                             <div class="d-flex justify-content-between">
-                                <button class="btn btn-primary btn-sm" onclick="showIlanDetay(${ilan.id})">
+                                <button class="btn btn-primary btn-sm" data-id="${ilan.id}" data-action="detay">
                                     <i class="fas fa-eye me-1"></i>Detay
                                 </button>
-                                <button class="btn btn-danger btn-sm" onclick="silIlan(${ilan.id})">
+                                <button class="btn btn-danger btn-sm" data-id="${ilan.id}" data-action="sil">
                                     <i class="fas fa-trash me-1"></i>Sil
                                 </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
+
+            // Event delegation for buttons
+            container.addEventListener('click', async (e) => {
+                const btn = e.target.closest('button[data-action]');
+                if (!btn) return;
+                const ilanId = btn.getAttribute('data-id');
+                const action = btn.getAttribute('data-action');
+                if (action === 'sil') {
+                    if (!confirm('Bu ilanı silmek istediğinizden emin misiniz?')) return;
+                    const res = await deleteIlan(ilanId);
+                    if (res?.success) {
+                        await fetchUserListings();
+                    }
+                }
+                if (action === 'detay') {
+                    // TODO: İlan detay sayfasına yönlendirme / modal açma
+                    alert('Detay sayfası yakında eklenecek. İlan ID: ' + ilanId);
+                }
+            }, { once: true });
         }
 
-        // Initialize the dashboard
-        fetchUserListings();
+        // Initialize dashboard
+        init();
     </script>
 </body>
 </html> 
