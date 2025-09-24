@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+    <h1>Admin Giriş Testi</h1>
+    <button onclick="testAdminLogin()">Admin Girişi Test Et</button>
+    <button onclick="testUserProfiles()">Kullanıcı Profilleri Test Et</button>
+    <div id="result"></div>
+
+    <script type="module">
+        import { supabase } from './supabase-config.js';
+        
+        // Test functions
+        window.testAdminLogin = async () => {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                resultDiv.innerHTML = 'Admin girişi test ediliyor...';
+                
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: 'satoshinakamototokyo42@gmail.com',
+                    password: 'sevimbebe4242'
+                });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                resultDiv.innerHTML = `✅ Admin girişi başarılı! User ID: ${data.user.id}`;
+                
+            } catch (error) {
+                console.error('Admin giriş hatası:', error);
+                resultDiv.innerHTML = `❌ Admin giriş hatası: ${error.message}`;
+            }
+        };
+        
+        window.testUserProfiles = async () => {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                resultDiv.innerHTML = 'Kullanıcı profilleri test ediliyor...';
+                
+                const { data, error } = await supabase
+                    .from('kullanici_profilleri')
+                    .select('*')
+                    .limit(5);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                resultDiv.innerHTML = `✅ Kullanıcı profilleri başarıyla getirildi! (${data.length} adet)\n<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                
+            } catch (error) {
+                console.error('Kullanıcı profilleri hatası:', error);
+                resultDiv.innerHTML = `❌ Kullanıcı profilleri hatası: ${error.message}`;
+            }
+        };
+    </script>
+</body>
+</html>

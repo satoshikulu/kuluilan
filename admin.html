@@ -202,6 +202,10 @@
                             <thead>
                                 <tr>
                                     <th>Email</th>
+                                    <th>Ad Soyad</th>
+                                    <th>Telefon</th>
+                                    <th>Yetki</th>
+                                    <th>Durum</th>
                                     <th>Kayıt Tarihi</th>
                                     <th>İşlemler</th>
                                 </tr>
@@ -524,13 +528,79 @@
 
     // Kullanıcıları çek
     async function fetchKullanicilar() {
-        const { data, error } = await supabase.from('kullanicilar').select('*').order('created_at', { ascending: false });
-        if (error) {
-            alert('Kullanıcılar yüklenirken hata: ' + error.message);
-            return;
+        try {
+            // Kullanıcı profilleri ve auth bilgilerini birleştirerek çek
+            const { data: profiles, error: profileError } = await supabase
+                .from('kullanici_profilleri')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (profileError) {
+                console.error('Kullanıcı profilleri hatası:', profileError);
+                throw profileError;
+            }
+
+            // Her profil için auth bilgilerini al
+            const usersWithAuth = [];
+            for (const profile of profiles) {
+                try {
+                    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(profile.id);
+                    
+                    if (!authError && authUser.user) {
+                        usersWithAuth.push({
+                            ...profile,
+                            email: authUser.user.email,
+                            phone: authUser.user.phone
+                        });
+                    } else {
+                        // Auth kullanıcısı bulunamazsa profil bilgilerini kullan
+                        usersWithAuth.push({
+                            ...profile,
+                            email: 'Email bulunamadı',
+                            phone: profile.telefon
+                        });
+                    }
+                } catch (authErr) {
+                    console.warn(`User ${profile.id} auth bilgisi alınamadı:`, authErr);
+                    usersWithAuth.push({
+                        ...profile,
+                        email: 'Email bulunamadı',
+                        phone: profile.telefon
+                    });
+                }
+            }
+            
+            displayKullanicilar(usersWithAuth);
+            document.getElementById('toplamKullanici').textContent = usersWithAuth.length;
+            
+        } catch (error) {
+            console.error('Kullanıcılar çekilirken hata:', error);
+            
+            // Fallback: Sadece auth users'ı çek
+            try {
+                const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
+                
+                if (authError) {
+                    throw authError;
+                }
+                
+                const usersWithProfile = authData.users.map(user => ({
+                    id: user.id,
+                    email: user.email,
+                    created_at: user.created_at,
+                    ad_soyad: 'Belirtilmemiş',
+                    telefon: user.phone || 'Belirtilmemiş',
+                    is_admin: false,
+                    aktif: true
+                }));
+                
+                displayKullanicilar(usersWithProfile);
+                document.getElementById('toplamKullanici').textContent = usersWithProfile.length;
+            } catch (fallbackError) {
+                console.error('Fallback kullanıcı çekme hatası:', fallbackError);
+                alert('Kullanıcılar yüklenirken hata: ' + fallbackError.message);
+            }
         }
-        displayKullanicilar(data);
-        document.getElementById('toplamKullanici').textContent = data.length;
     }
 
     // Kullanıcıları göster
@@ -538,10 +608,28 @@
         const container = document.getElementById('kullanicilarListesi');
         container.innerHTML = kullanicilar.map(kullanici => `
             <tr>
-                <td>${kullanici.email}</td>
+                <td>${kullanici.email || 'Email bulunamadı'}</td>
+                <td>${kullanici.ad_soyad || 'Belirtilmemiş'}</td>
+                <td>${kullanici.telefon || 'Belirtilmemiş'}</td>
+                <td>
+                    <span class="badge ${kullanici.is_admin ? 'bg-danger' : 'bg-primary'}">
+                        ${kullanici.is_admin ? 'Admin' : 'Kullanıcı'}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge ${kullanici.aktif ? 'bg-success' : 'bg-secondary'}">
+                        ${kullanici.aktif ? 'Aktif' : 'Pasif'}
+                    </span>
+                </td>
                 <td>${new Date(kullanici.created_at).toLocaleString('tr-TR')}</td>
                 <td>
-                    <button class="btn btn-sm btn-danger" onclick="deleteUser('${kullanici.id}')">
+                    <button class="btn btn-sm btn-warning me-1" onclick="toggleUserStatus('${kullanici.id}', ${!kullanici.aktif})" title="${kullanici.aktif ? 'Pasifleştir' : 'Aktifleştir'}">
+                        <i class="fas ${kullanici.aktif ? 'fa-user-slash' : 'fa-user-check'}"></i>
+                    </button>
+                    <button class="btn btn-sm btn-info me-1" onclick="toggleAdminStatus('${kullanici.id}', ${!kullanici.is_admin})" title="${kullanici.is_admin ? 'Admin Yetkisini Kaldır' : 'Admin Yap'}">
+                        <i class="fas ${kullanici.is_admin ? 'fa-user-minus' : 'fa-user-plus'}"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteUser('${kullanici.id}')" title="Sil">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -549,17 +637,87 @@
         `).join('');
     }
 
-    // Kullanıcı sil
-    async function deleteUser(id) {
-        if (!confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) return;
-        const { error } = await supabase.from('kullanicilar').delete().eq('id', id);
-        if (error) {
-            alert('Kullanıcı silinirken hata: ' + error.message);
-        } else {
-            alert('Kullanıcı silindi');
+    // Kullanıcı durumu değiştir (aktif/pasif)
+    async function toggleUserStatus(userId, newStatus) {
+        try {
+            const { error } = await supabase
+                .from('kullanici_profilleri')
+                .update({ aktif: newStatus })
+                .eq('id', userId);
+            
+            if (error) {
+                throw error;
+            }
+            
+            alert(`Kullanıcı ${newStatus ? 'aktifleştirildi' : 'pasifleştirildi'}`);
             fetchKullanicilar();
+        } catch (error) {
+            console.error('Kullanıcı durumu değiştirme hatası:', error);
+            alert('Kullanıcı durumu değiştirilirken hata: ' + error.message);
         }
     }
+
+    // Admin yetkisi değiştir
+    async function toggleAdminStatus(userId, newAdminStatus) {
+        try {
+            const { error } = await supabase
+                .from('kullanici_profilleri')
+                .update({ is_admin: newAdminStatus })
+                .eq('id', userId);
+            
+            if (error) {
+                throw error;
+            }
+            
+            alert(`Kullanıcıya ${newAdminStatus ? 'admin yetkisi verildi' : 'admin yetkisi kaldırıldı'}`);
+            fetchKullanicilar();
+        } catch (error) {
+            console.error('Admin yetkisi değiştirme hatası:', error);
+            alert('Admin yetkisi değiştirilirken hata: ' + error.message);
+        }
+    }
+
+    // Kullanıcı sil
+    async function deleteUser(userId) {
+        if (!confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve kullanıcının tüm ilanları da silinecektir.')) {
+            return;
+        }
+        
+        try {
+            // Önce kullanıcı profilini sil
+            const { error: profileError } = await supabase
+                .from('kullanici_profilleri')
+                .delete()
+                .eq('id', userId);
+            
+            if (profileError) {
+                console.error('Profil silme hatası:', profileError);
+            }
+            
+            // Sonra auth kullanıcısını sil (admin yetkisi gerekir)
+            const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+            
+            if (authError) {
+                throw authError;
+            }
+            
+            alert('Kullanıcı başarıyla silindi');
+            fetchKullanicilar();
+        } catch (error) {
+            console.error('Kullanıcı silme hatası:', error);
+            alert('Kullanıcı silinirken hata: ' + error.message);
+        }
+    }
+
+    // Global functions for onclick events
+    window.toggleUserStatus = toggleUserStatus;
+    window.toggleAdminStatus = toggleAdminStatus;
+    window.deleteUser = deleteUser;
+    window.editListing = editListing;
+    window.deleteListing = deleteListing;
+    window.saveEdit = saveEdit;
+    window.applyFilters = applyFilters;
+    window.handleLogout = handleLogout;
 
     // İstatistikleri çek (gerekirse ek fonksiyon)
     async function fetchStats() {

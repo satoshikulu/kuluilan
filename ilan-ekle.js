@@ -30,7 +30,7 @@ export async function saveData(formData) {
             esya_durumu: formData.get('esya_durumu'),
             imar_durumu: formData.get('imar_durumu'),
             tapu_durumu: formData.get('tapu_durumu'),
-            created_at: new Date().toISOString(),
+            // created_at ve updated_at otomatik olarak SQL tarafından eklenir
             onayli: false
         };
 
