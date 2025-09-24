@@ -75,10 +75,11 @@
             try {
                 resultDiv.innerHTML = 'Supabase bağlantısı test ediliyor...';
                 
-                // Basit bir sorgu ile bağlantıyı test et
+                // Basit bir sorgu ile bağlantıyı test et (PostgREST ve supabase-js v2 uyumlu)
+                // Not: `select('count(*)')` PostgREST'te geçerli değildir. Basit bir SELECT LIMIT 1 kullanıyoruz.
                 const { data, error } = await supabase
                     .from('ilanlar')
-                    .select('count(*)')
+                    .select('*')
                     .limit(1);
                 
                 if (error) {
