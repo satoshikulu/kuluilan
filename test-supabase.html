@@ -101,6 +101,9 @@
             try {
                 resultDiv.innerHTML = 'Test ilanı ekleniyor...';
                 
+                // get authenticated user id if available, otherwise null
+                const { data: { user } } = await supabase.auth.getUser();
+
                 const testData = {
                     baslik: 'Test İlanı',
                     aciklama: 'Bu bir test ilanıdır.',
@@ -112,7 +115,7 @@
                     konum: 'Test Mahallesi',
                     created_at: new Date().toISOString(),
                     onayli: false,
-                    user_id: 'test-user-id'
+                    user_id: user?.id ?? null
                 };
                 
                 const { data, error } = await supabase
