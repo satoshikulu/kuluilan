@@ -88,12 +88,55 @@
         </div>
     </div>
 
+    <!-- Detay / Düzenle Modal -->
+    <div class="modal fade" id="ilanModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">İlan Detay / Düzenle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="ilanEditForm" class="vstack gap-3">
+                        <input type="hidden" id="editIlanId">
+                        <div>
+                            <label class="form-label" for="editBaslik">Başlık</label>
+                            <input class="form-control" id="editBaslik" type="text" required>
+                        </div>
+                        <div>
+                            <label class="form-label" for="editFiyat">Fiyat (TL)</label>
+                            <input class="form-control" id="editFiyat" type="number" min="0">
+                        </div>
+                        <div>
+                            <label class="form-label" for="editMahalle">Mahalle</label>
+                            <input class="form-control" id="editMahalle" type="text">
+                        </div>
+                        <div>
+                            <label class="form-label" for="editTelefon">Telefon</label>
+                            <input class="form-control" id="editTelefon" type="tel">
+                        </div>
+                        <div>
+                            <label class="form-label" for="editAciklama">Açıklama</label>
+                            <textarea class="form-control" id="editAciklama" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                    <button type="button" class="btn btn-primary" id="saveIlanBtn">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
         import { supabase, getCurrentUser } from './supabase-config.js';
-        import { getKullaniciIlanlari, deleteIlan } from './ilan.js';
+        import { getKullaniciIlanlari, deleteIlan, updateIlan } from './ilan.js';
 
         const adminEmail = "satoshinakamototokyo42@gmail.com";
+        let currentListings = [];
+        let modalInstance = null;
 
         async function init() {
             try {
@@ -137,6 +180,7 @@
 
         function displayListings(ilanlar) {
             const container = document.getElementById('ilanlarContainer');
+            currentListings = Array.isArray(ilanlar) ? ilanlar : [];
             if (!ilanlar || ilanlar.length === 0) {
                 container.innerHTML = `<div class="col-12 text-center text-muted">Henüz ilanınız bulunmuyor.</div>`;
                 return;
@@ -186,14 +230,70 @@
                     }
                 }
                 if (action === 'detay') {
-                    // TODO: İlan detay sayfasına yönlendirme / modal açma
-                    alert('Detay sayfası yakında eklenecek. İlan ID: ' + ilanId);
+                    openEditModal(ilanId);
                 }
-            }, { once: true });
+            });
         }
 
         // Initialize dashboard
         init();
+
+        function openEditModal(ilanId) {
+            const ilan = currentListings.find(x => String(x.id) === String(ilanId));
+            if (!ilan) {
+                alert('İlan bulunamadı.');
+                return;
+            }
+
+            // Fill form
+            document.getElementById('editIlanId').value = ilan.id;
+            document.getElementById('editBaslik').value = ilan.baslik || '';
+            document.getElementById('editFiyat').value = typeof ilan.fiyat === 'number' ? ilan.fiyat : '';
+            document.getElementById('editMahalle').value = ilan.mahalle || '';
+            document.getElementById('editTelefon').value = ilan.telefon || '';
+            document.getElementById('editAciklama').value = ilan.aciklama || '';
+
+            const modalEl = document.getElementById('ilanModal');
+            modalInstance = new bootstrap.Modal(modalEl);
+            modalInstance.show();
+        }
+
+        document.getElementById('saveIlanBtn').addEventListener('click', async () => {
+            const ilanId = document.getElementById('editIlanId').value;
+            const updateData = {
+                baslik: document.getElementById('editBaslik').value.trim(),
+                aciklama: document.getElementById('editAciklama').value.trim(),
+                mahalle: document.getElementById('editMahalle').value.trim() || null,
+                telefon: document.getElementById('editTelefon').value.trim() || null,
+            };
+
+            const fiyatVal = document.getElementById('editFiyat').value;
+            if (fiyatVal !== '') {
+                const parsed = Number(fiyatVal);
+                if (!Number.isFinite(parsed) || parsed < 0) {
+                    alert('Lütfen geçerli bir fiyat girin.');
+                    return;
+                }
+                updateData.fiyat = parsed;
+            } else {
+                updateData.fiyat = null;
+            }
+
+            try {
+                const res = await updateIlan(ilanId, updateData);
+                if (res?.success || Array.isArray(res?.data)) {
+                    alert('İlan güncellendi.');
+                    // Kapat ve listeyi yenile
+                    if (modalInstance) modalInstance.hide();
+                    await fetchUserListings();
+                } else {
+                    alert('Güncelleme sırasında bir sorun oluştu.');
+                }
+            } catch (err) {
+                console.error('Güncelleme hatası:', err);
+                alert('İlan güncellenirken bir hata oluştu.');
+            }
+        });
     </script>
 </body>
 </html> 

@@ -52,9 +52,9 @@ function login(email, password) {
             
             console.log("Giriş başarılı:", data.user);
             // Admin kontrolü
-            if (email === 'satoshinakamototokyo42@gmail.com') {
-                // Admin dashboard'a yönlendir
-                window.location.href = '/admin-dashboard.html';
+                if (email === 'satoshinakamototokyo42@gmail.com') {
+                    // Admin dashboard'a yönlendir
+                    window.location.href = '/admin.html';
             } else {
                 // Normal kullanıcı dashboard'a yönlendir
                 window.location.href = '/user-dashboard.html';
@@ -132,8 +132,8 @@ function handleLoginFormSubmit(event) {
                 // Başarılı giriş sonrası yönlendirme veya UI güncelleme
                 alert('Giriş başarılı! Hoş geldiniz.');
                 // Admin kontrolü
-                if (email === 'satoshinakamototokyo42@gmail.com') {
-                    window.location.href = '/admin-dashboard.html';
+                    if (email === 'satoshinakamototokyo42@gmail.com') {
+                        window.location.href = '/admin.html';
                 } else {
                     window.location.href = '/user-dashboard.html';
                 }

@@ -1,3 +1,4 @@
+
 node_modules/
 dist/
 .env
@@ -8,14 +9,17 @@ frontend/node_modules/
 frontend/dist/
 .DS_Store
 Thumbs.db
-node_modules/
 .cache/
-dist/
 build/
-.env
 
 # Local Supabase config (do NOT commit secrets)
 supabase-config.js
+supabase-config.js
+
+
+
+
+
 
 
 

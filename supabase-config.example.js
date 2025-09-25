@@ -1,18 +1,9 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// Copy this file to `supabase-config.js` and fill the values, or set environment variables (VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY) in your hosting provider.
 
-// BU DOSYA ÖRNEKTİR. Gerçek anahtarlarınızı supabase-config.js dosyasına koyun.
-// supabase-config.js GITIGNORE'a EKLENMİŞTİR ve REPOYA PUSH EDİLMEYECEKTİR.
+export const VITE_SUPABASE_URL = 'https://your-project.supabase.co'
+export const VITE_SUPABASE_ANON_KEY = 'your-anon-key'
 
-// 1) Aşağıdaki yer tutucuları kendi proje bilgilerinizle değiştirin
-// 2) Bu dosyayı KOPYALAYIP supabase-config.js adıyla kaydedin (git tarafından izlenmez)
+// Example usage in a browser environment (minimal):
+// window.__ENV__ = { VITE_SUPABASE_URL: 'https://...', VITE_SUPABASE_ANON_KEY: '...' };
 
-const supabaseUrl = 'https://YOUR_PROJECT_ID.supabase.co'
-const supabaseKey = 'YOUR_PUBLIC_ANON_KEY'
-
-export const supabase = createClient(supabaseUrl, supabaseKey)
-
-// İsteğe bağlı yardımcılar (örnek olarak bırakıldı)
-export const getCurrentUser = async () => {
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
-}
+// For local development you can create a small script to set window.__ENV__ before your main bundle loads.

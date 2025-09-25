@@ -1,5 +1,5 @@
 import { register, login, logout } from './auth.js';
-import { getKullaniciIlanlari } from './ilan-ekle.js';
+import { getKullaniciIlanlari } from './ilan.js';
 import { supabase } from './supabase-config.js';
 
 // Supabase oturum durumunu kontrol et
