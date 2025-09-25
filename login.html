@@ -66,7 +66,7 @@
             const telefon = document.getElementById('telefon').value;
 
             try {
-                const response = await fetch('http://localhost:3001/api/kullanici/giris', {
+                const response = await fetch('/.netlify/functions/kullanici-giris', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
