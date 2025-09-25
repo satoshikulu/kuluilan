@@ -56,6 +56,13 @@
                 </div>
 
                 <div>
+                    <label for="alt_kategori" class="block text-sm font-medium text-gray-700">Alt Kategori</label>
+                    <input type="text" id="alt_kategori" name="alt_kategori"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Örn: 3+1, Bahçeli">
+                </div>
+
+                <div>
                     <label for="fiyat" class="block text-sm font-medium text-gray-700">Fiyat (TL)</label>
                     <input type="number" id="fiyat" name="fiyat" required
                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -67,6 +74,13 @@
                     <textarea id="aciklama" name="aciklama" rows="4" required
                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                               placeholder="İlanınız hakkında detaylı bilgi verin"></textarea>
+                </div>
+
+                <div>
+                    <label for="telefon" class="block text-sm font-medium text-gray-700">Telefon</label>
+                    <input type="tel" id="telefon" name="telefon" required
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Örn: 5550000000">
                 </div>
 
                 <div>
@@ -87,7 +101,8 @@
     </div>
 
     <script type="module">
-        import { saveData } from './ilan-functions.js';
+        // Use the actual ilan module which exports saveData
+        import { saveData } from './ilan.js';
 
         const form = document.getElementById('ilanForm');
 
@@ -97,9 +112,12 @@
 
             try {
                 const savedIlan = await saveData(formData);
-                if (savedIlan) {
+                if (savedIlan && savedIlan.success) {
                     alert('İlanınız başarıyla eklendi! Admin onayından sonra yayınlanacaktır.');
                     window.location.href = '/';
+                } else {
+                    console.error('İlan ekleme başarısız:', savedIlan);
+                    alert('İlan eklenirken bir hata oluştu: ' + (savedIlan && savedIlan.error ? savedIlan.error.message || savedIlan.error : 'Bilinmeyen hata'));
                 }
             } catch (error) {
                 console.error('İlan ekleme hatası:', error);

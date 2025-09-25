@@ -12,12 +12,12 @@ function formDataToIlan(formData, userId) {
   return {
     baslik: formData.get('baslik') || '',
     aciklama: formData.get('aciklama') || '',
-    fiyat: Number.isFinite(fiyat) ? fiyat : null,
-    kategori: formData.get('kategori') || null,
-    alt_kategori: formData.get('alt_kategori') || null,
-    konum: formData.get('konum') || null,
-    telefon: formData.get('telefon') || null,
-    mahalle: formData.get('mahalle') || null,
+  fiyat: Number.isFinite(fiyat) ? fiyat : 0,
+  kategori: formData.get('kategori') || '',
+  alt_kategori: formData.get('alt_kategori') || '',
+  konum: formData.get('konum') || '',
+  telefon: formData.get('telefon') || '',
+  mahalle: formData.get('mahalle') || '',
     onayli: false,
     user_id: userId || null,
     created_at: new Date().toISOString()
@@ -52,8 +52,9 @@ export async function saveData(formData) {
       .select()
 
     if (ilanError) {
-      console.error('İlan kaydetme hatası:', ilanError)
-      alert('İlan kaydedilirken bir hata oluştu.')
+  console.error('İlan kaydetme hatası:', ilanError)
+  const msg = ilanError?.message || JSON.stringify(ilanError)
+  alert('İlan kaydedilirken bir hata oluştu: ' + msg)
       return { success: false, error: ilanError }
     }
 
