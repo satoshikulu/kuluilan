@@ -105,23 +105,35 @@
         import { saveData } from './ilan.js';
 
         const form = document.getElementById('ilanForm');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.textContent;
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(form);
 
+            // Disable submit button to prevent double-clicks
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Gönderiliyor...';
+
             try {
                 const savedIlan = await saveData(formData);
                 if (savedIlan && savedIlan.success) {
-                    alert('İlanınız başarıyla eklendi! Admin onayından sonra yayınlanacaktır.');
+                    // Başarı mesajı
+                    alert('İlanınız admin onayı için gönderildi.');
                     window.location.href = '/';
                 } else {
                     console.error('İlan ekleme başarısız:', savedIlan);
-                    alert('İlan eklenirken bir hata oluştu: ' + (savedIlan && savedIlan.error ? savedIlan.error.message || savedIlan.error : 'Bilinmeyen hata'));
+                    // Hata varsa kullanıcıya genel bir mesaj göster
+                    alert('İlanda sorun oluştu. Lütfen içeriği kontrol edip tekrar deneyin.');
                 }
             } catch (error) {
                 console.error('İlan ekleme hatası:', error);
-                alert('İlan eklenirken bir hata oluştu. Lütfen tekrar deneyin.');
+                alert('İlanda sorun oluştu. Lütfen tekrar deneyin.');
+            } finally {
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
             }
         });
     </script>
