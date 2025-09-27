@@ -46,6 +46,9 @@ export async function saveData(formData) {
     // Ilan kaydi olustur
     const ilanPayload = formDataToIlan(formData, user.id)
 
+    // DEBUG: log payload to help diagnose UUID / payload issues
+    console.log('DEBUG ilanPayload before insert:', ilanPayload)
+
     const { data: ilanInsert, error: ilanError } = await supabase
       .from('ilanlar')
       .insert([ilanPayload])
