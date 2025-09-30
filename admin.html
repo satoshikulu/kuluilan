@@ -328,6 +328,8 @@
         if (loginForm) {
             loginForm.addEventListener('submit', handleAdminLogin);
         }
+        // URL parametreleri ile otomatik giriş dene
+        autoLoginFromURL();
     });
 
     // Admin Girişi (Supabase Auth)
@@ -349,6 +351,35 @@
             }
         } catch (error) {
             alert('Giriş sırasında hata: ' + error.message);
+        }
+    }
+
+    // URL parametreleri ile otomatik giriş
+    async function autoLoginFromURL() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const email = params.get('username') || params.get('email');
+            const password = params.get('password') || params.get('pass');
+            if (!email || !password) return;
+
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                alert('Otomatik giriş başarısız: ' + error.message);
+                return;
+            }
+            if (email === ADMIN_EMAIL) {
+                localStorage.setItem('adminLoggedIn', 'true');
+                showAdminPanel();
+            } else {
+                alert('Otomatik giriş başarılı ancak admin yetkisi yok.');
+            }
+        } catch (e) {
+            console.error('Otomatik giriş hatası:', e);
+        } finally {
+            // Güvenlik için parametreleri URL'den temizle
+            const url = new URL(window.location.href);
+            url.search = '';
+            window.history.replaceState({}, document.title, url.toString());
         }
     }
 
