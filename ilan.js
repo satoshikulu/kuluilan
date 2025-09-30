@@ -43,6 +43,38 @@ export async function saveData(formData) {
       throw new Error('Kullanici girisi gerekli')
     }
 
+    // Form doğrulama
+    const baslik = formData.get('baslik') || ''
+    const fiyat = formData.get('fiyat') || ''
+    const kategori = formData.get('kategori') || ''
+    const telefon = formData.get('telefon') || ''
+    const mahalle = formData.get('mahalle') || ''
+    
+    if (!baslik.trim()) {
+      alert('Lütfen ilan başlığı girin.')
+      return { success: false, error: 'Başlık gerekli' }
+    }
+    
+    if (!fiyat || isNaN(fiyat) || Number(fiyat) <= 0) {
+      alert('Lütfen geçerli bir fiyat girin.')
+      return { success: false, error: 'Geçersiz fiyat' }
+    }
+    
+    if (!kategori) {
+      alert('Lütfen kategori seçin.')
+      return { success: false, error: 'Kategori gerekli' }
+    }
+    
+    if (!telefon || telefon.length < 10) {
+      alert('Lütfen geçerli bir telefon numarası girin.')
+      return { success: false, error: 'Geçersiz telefon' }
+    }
+    
+    if (!mahalle) {
+      alert('Lütfen mahalle seçin.')
+      return { success: false, error: 'Mahalle gerekli' }
+    }
+
     // Ilan kaydi olustur
     const ilanPayload = formDataToIlan(formData, user.id)
 

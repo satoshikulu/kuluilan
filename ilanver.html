@@ -13,6 +13,14 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        .error {
+            border-color: #e53e3e !important;
+        }
+        .error-message {
+            color: #e53e3e;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -38,14 +46,15 @@
 
             <form id="ilanForm" class="space-y-6">
                 <div>
-                    <label for="baslik" class="block text-sm font-medium text-gray-700">İlan Başlığı</label>
+                    <label for="baslik" class="block text-sm font-medium text-gray-700">İlan Başlığı *</label>
                     <input type="text" id="baslik" name="baslik" required
                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                            placeholder="Örn: 3+1 Satılık Daire">
+                    <div id="baslik-error" class="error-message hidden"></div>
                 </div>
 
                 <div>
-                    <label for="kategori" class="block text-sm font-medium text-gray-700">Kategori</label>
+                    <label for="kategori" class="block text-sm font-medium text-gray-700">Kategori *</label>
                     <select id="kategori" name="kategori" required
                             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Seçiniz</option>
@@ -53,6 +62,7 @@
                         <option value="satilik-arsa">Satılık Arsa</option>
                         <option value="kiralik-ev">Kiralık Ev</option>
                     </select>
+                    <div id="kategori-error" class="error-message hidden"></div>
                 </div>
 
                 <div>
@@ -63,30 +73,90 @@
                 </div>
 
                 <div>
-                    <label for="fiyat" class="block text-sm font-medium text-gray-700">Fiyat (TL)</label>
-                    <input type="number" id="fiyat" name="fiyat" required
+                    <label for="fiyat" class="block text-sm font-medium text-gray-700">Fiyat (TL) *</label>
+                    <input type="number" id="fiyat" name="fiyat" required min="1"
                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                            placeholder="Örn: 500000">
+                    <div id="fiyat-error" class="error-message hidden"></div>
                 </div>
 
                 <div>
-                    <label for="aciklama" class="block text-sm font-medium text-gray-700">Açıklama</label>
+                    <label for="mahalle" class="block text-sm font-medium text-gray-700">Mahalle *</label>
+                    <select id="mahalle" name="mahalle" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Mahalle Seçin</option>
+                        <option value="acikuyu">AÇIKUYU MAHALLESİ</option>
+                        <option value="alparslan">ALPARSLAN MAHALLESİ</option>
+                        <option value="altilar">ALTILAR MAHALLESİ</option>
+                        <option value="arsinci">ARŞINCI MAHALLESİ</option>
+                        <option value="bahadirli">BAHADIRLI MAHALLESİ</option>
+                        <option value="beskardes">BEŞKARDEŞ MAHALLESİ</option>
+                        <option value="bozan">BOZAN MAHALLESİ</option>
+                        <option value="burunagil">BURUNAĞIL MAHALLESİ</option>
+                        <option value="camikebir">CAMİKEBİR MAHALLESİ</option>
+                        <option value="canimana">CANIMANA MAHALLESİ</option>
+                        <option value="celep">CELEP MAHALLESİ</option>
+                        <option value="cumhuriyet">CUMHURİYET MAHALLESİ</option>
+                        <option value="degirmenozu">DEĞİRMENÖZÜ MAHALLESİ</option>
+                        <option value="dinek">DİNEK MAHALLESİ</option>
+                        <option value="dipdede">DİPDEDE MAHALLESİ</option>
+                        <option value="dogutepe">DOĞUTEPE MAHALLESİ</option>
+                        <option value="fatih">FATİH SULTAN MEHMET MAHALLESİ</option>
+                        <option value="fevziye">FEVZİYE MAHALLESİ</option>
+                        <option value="gokler">GÖKLER MAHALLESİ</option>
+                        <option value="guzelyayla">GÜZELYAYLA MAHALLESİ</option>
+                        <option value="hisarkoy">HİSARKÖY MAHALLESİ</option>
+                        <option value="karacadag">KARACADAĞ MAHALLESİ</option>
+                        <option value="karacadere">KARACADERE MAHALLESİ</option>
+                        <option value="karapinar">KARAPINAR MAHALLESİ</option>
+                        <option value="karsiyaka">KARŞIYAKA MAHALLESİ</option>
+                        <option value="kemaliye">KEMALİYE MAHALLESİ</option>
+                        <option value="kirkkuyu">KIRKKUYU MAHALLESİ</option>
+                        <option value="kirkpinar">KIRKPINAR MAHALLESİ</option>
+                        <option value="kozanli">KOZANLI MAHALLESİ</option>
+                        <option value="komusini">KÖMÜŞİNİ MAHALLESİ</option>
+                        <option value="kostengil">KÖSTENGİL MAHALLESİ</option>
+                        <option value="kosker">KÖŞKER MAHALLESİ</option>
+                        <option value="mandira">MANDIRA MAHALLESİ</option>
+                        <option value="omeranli">ÖMERANLI MAHALLESİ</option>
+                        <option value="sariyayla">SARIYAYLA MAHALLESİ</option>
+                        <option value="seyitahmetli">SEYİTAHMETLİ MAHALLESİ</option>
+                        <option value="sogukkuyu">SOĞUKKUYU MAHALLESİ</option>
+                        <option value="serefli">ŞEREFLİ MAHALLESİ</option>
+                        <option value="tavlioren">TAVLIÖREN MAHALLESİ</option>
+                        <option value="tuzyaka">TUZYAKA MAHALLESİ</option>
+                        <option value="yarasli">YARAŞLI MAHALLESİ</option>
+                        <option value="yazicayir">YAZIÇAYIR MAHALLESİ</option>
+                        <option value="yeni">YENİ MAHALLESİ</option>
+                        <option value="yesiltepe">YEŞİLTEPE MAHALLESİ</option>
+                        <option value="yesilyurt">YEŞİLYURT MAHALLESİ</option>
+                        <option value="zincirlikuyu">ZİNCİRLİKUYU MAHALLESİ</option>
+                    </select>
+                    <div id="mahalle-error" class="error-message hidden"></div>
+                </div>
+
+                <div>
+                    <label for="aciklama" class="block text-sm font-medium text-gray-700">Açıklama *</label>
                     <textarea id="aciklama" name="aciklama" rows="4" required
                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                               placeholder="İlanınız hakkında detaylı bilgi verin"></textarea>
+                    <div id="aciklama-error" class="error-message hidden"></div>
                 </div>
 
                 <div>
-                    <label for="telefon" class="block text-sm font-medium text-gray-700">Telefon</label>
-                    <input type="tel" id="telefon" name="telefon" required
+                    <label for="telefon" class="block text-sm font-medium text-gray-700">Telefon *</label>
+                    <input type="tel" id="telefon" name="telefon" required pattern="[0-9]{10}"
                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                            placeholder="Örn: 5550000000">
+                    <div id="telefon-error" class="error-message hidden"></div>
+                    <p class="mt-1 text-sm text-gray-500">Telefon numarasını 10 haneli olarak girin (örn: 5551234567)</p>
                 </div>
 
                 <div>
                     <label for="media" class="block text-sm font-medium text-gray-700">Fotoğraf/Video</label>
                     <input type="file" id="media" name="medya" multiple accept="image/*,video/*"
                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <div id="media-error" class="error-message hidden"></div>
                     <p class="mt-1 text-sm text-gray-500">En fazla 5 adet fotoğraf veya video yükleyebilirsiniz</p>
                 </div>
 
@@ -108,8 +178,128 @@
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalBtnText = submitBtn.textContent;
 
+        // Form doğrulama fonksiyonu
+        function validateForm() {
+            let isValid = true;
+            
+            // Başlık doğrulama
+            const baslik = document.getElementById('baslik');
+            const baslikError = document.getElementById('baslik-error');
+            if (!baslik.value.trim()) {
+                baslik.classList.add('error');
+                baslikError.textContent = 'Lütfen ilan başlığı girin.';
+                baslikError.classList.remove('hidden');
+                isValid = false;
+            } else {
+                baslik.classList.remove('error');
+                baslikError.classList.add('hidden');
+            }
+            
+            // Kategori doğrulama
+            const kategori = document.getElementById('kategori');
+            const kategoriError = document.getElementById('kategori-error');
+            if (!kategori.value) {
+                kategori.classList.add('error');
+                kategoriError.textContent = 'Lütfen kategori seçin.';
+                kategoriError.classList.remove('hidden');
+                isValid = false;
+            } else {
+                kategori.classList.remove('error');
+                kategoriError.classList.add('hidden');
+            }
+            
+            // Fiyat doğrulama
+            const fiyat = document.getElementById('fiyat');
+            const fiyatError = document.getElementById('fiyat-error');
+            if (!fiyat.value || isNaN(fiyat.value) || Number(fiyat.value) <= 0) {
+                fiyat.classList.add('error');
+                fiyatError.textContent = 'Lütfen geçerli bir fiyat girin.';
+                fiyatError.classList.remove('hidden');
+                isValid = false;
+            } else {
+                fiyat.classList.remove('error');
+                fiyatError.classList.add('hidden');
+            }
+            
+            // Mahalle doğrulama
+            const mahalle = document.getElementById('mahalle');
+            const mahalleError = document.getElementById('mahalle-error');
+            if (!mahalle.value) {
+                mahalle.classList.add('error');
+                mahalleError.textContent = 'Lütfen mahalle seçin.';
+                mahalleError.classList.remove('hidden');
+                isValid = false;
+            } else {
+                mahalle.classList.remove('error');
+                mahalleError.classList.add('hidden');
+            }
+            
+            // Açıklama doğrulama
+            const aciklama = document.getElementById('aciklama');
+            const aciklamaError = document.getElementById('aciklama-error');
+            if (!aciklama.value.trim()) {
+                aciklama.classList.add('error');
+                aciklamaError.textContent = 'Lütfen açıklama girin.';
+                aciklamaError.classList.remove('hidden');
+                isValid = false;
+            } else {
+                aciklama.classList.remove('error');
+                aciklamaError.classList.add('hidden');
+            }
+            
+            // Telefon doğrulama
+            const telefon = document.getElementById('telefon');
+            const telefonError = document.getElementById('telefon-error');
+            const phoneRegex = /^[0-9]{10}$/;
+            if (!telefon.value || !phoneRegex.test(telefon.value)) {
+                telefon.classList.add('error');
+                telefonError.textContent = 'Lütfen geçerli bir telefon numarası girin (10 haneli).';
+                telefonError.classList.remove('hidden');
+                isValid = false;
+            } else {
+                telefon.classList.remove('error');
+                telefonError.classList.add('hidden');
+            }
+            
+            // Medya dosyaları doğrulama
+            const media = document.getElementById('media');
+            const mediaError = document.getElementById('media-error');
+            if (media.files.length > 5) {
+                media.classList.add('error');
+                mediaError.textContent = 'En fazla 5 dosya yükleyebilirsiniz.';
+                mediaError.classList.remove('hidden');
+                isValid = false;
+            } else {
+                media.classList.remove('error');
+                mediaError.classList.add('hidden');
+            }
+            
+            return isValid;
+        }
+
+        // Input alanları için gerçek zamanlı doğrulama
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('blur', validateForm);
+            input.addEventListener('input', () => {
+                // Hata mesajlarını gizle
+                const errorElement = document.getElementById(input.id + '-error');
+                if (errorElement) {
+                    errorElement.classList.add('hidden');
+                    input.classList.remove('error');
+                }
+            });
+        });
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // Form doğrulama
+            if (!validateForm()) {
+                alert('Lütfen tüm gerekli alanları doğru şekilde doldurun.');
+                return;
+            }
+            
             const formData = new FormData(form);
 
             // Disable submit button to prevent double-clicks
@@ -121,7 +311,7 @@
                 if (savedIlan && savedIlan.success) {
                     // Başarı mesajı
                     alert('İlanınız admin onayı için gönderildi.');
-                    window.location.href = '/';
+                    form.reset();
                 } else {
                     console.error('İlan ekleme başarısız:', savedIlan);
                     // Hata varsa kullanıcıya genel bir mesaj göster
@@ -137,6 +327,7 @@
             }
         });
     </script>
+    <script src="env.js"></script>
 
 </body>
 </html>

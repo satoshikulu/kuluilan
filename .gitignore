@@ -12,6 +12,9 @@ Thumbs.db
 .cache/
 build/
 
+# Local runtime env for browser (contains public anon key) — do NOT commit
+env.js
+
 # Local Supabase config (do NOT commit secrets)
 supabase-config.js
 supabase-config.js

@@ -68,6 +68,11 @@
             color: #ff6b00;
         }
 
+        /* Auth buttons visibility default */
+        .logout-btn {
+            display: none;
+        }
+
         .navbar-brand::after {
             content: '';
             position: absolute;
@@ -738,6 +743,19 @@
                             <i class="fas fa-envelope me-1"></i>İletişim
                         </a>
                     </li>
+                    <li class="nav-item d-flex align-items-center">
+                        <span id="user-info" class="ms-2" style="display:none; font-weight:600;"></span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link login-btn" href="giris-kayit.html">
+                            <i class="fas fa-sign-in-alt me-1"></i>Giriş Yap / Üye Ol
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link logout-btn" style="border:none; background: rgba(255,255,255,0.95); border-radius:25px;" onclick="import('./auth.js').then(m=>m.logout())">
+                            <i class="fas fa-sign-out-alt me-1"></i>Çıkış
+                        </button>
+                    </li>
                     <li class="nav-item">
                         <a class="btn btn-warning px-3 py-1 ms-2" href="ilanver.html" style="font-size: 1rem; font-weight: 600; border-radius: 20px; color: #fff; background: linear-gradient(90deg, #ffb300, #ff6b00); box-shadow: 0 2px 8px rgba(255,107,0,0.10); transition: all 0.2s;">
                             <i class="fas fa-plus-circle me-1"></i>İlan Ver
@@ -880,6 +898,63 @@
                     </div>
     </section>
 
+    <!-- Auth Modal -->
+    <div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Giriş Yap / Üye Ol</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" id="authTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">Giriş Yap</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab">Üye Ol</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content pt-3" id="authTabContent">
+                        <div class="tab-pane fade show active" id="login" role="tabpanel">
+                            <form id="login-form">
+                                <div class="mb-3">
+                                    <label for="login-phone" class="form-label">Telefon Numarası</label>
+                                    <input type="tel" class="form-control" id="login-phone" required placeholder="5XXXXXXXXX" pattern="[0-9]{10}">
+                                    <div class="form-text">10 haneli telefon numaranızı girin (örn: 5551234567)</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="login-password" class="form-label">Şifre</label>
+                                    <input type="password" class="form-control" id="login-password" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade" id="register" role="tabpanel">
+                            <form id="register-form">
+                                <div class="mb-3">
+                                    <label for="register-name" class="form-label">Ad Soyad</label>
+                                    <input type="text" class="form-control" id="register-name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="register-phone" class="form-label">Telefon Numarası</label>
+                                    <input type="tel" class="form-control" id="register-phone" required placeholder="5XXXXXXXXX" pattern="[0-9]{10}">
+                                    <div class="form-text">10 haneli telefon numaranızı girin (örn: 5551234567)</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="register-password" class="form-label">Şifre</label>
+                                    <input type="password" class="form-control" id="register-password" required minlength="6">
+                                    <div class="form-text">En az 6 karakter uzunluğunda olmalıdır</div>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Üye Ol</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Categories Section -->
     <section class="categories-section">
         <div class="container">
@@ -995,5 +1070,9 @@
             }
         }
     </script>
-</body>
-</html>
+    <!-- Supabase env and auth scripts -->
+    <script src="env.js"></script>
+    <script type="module" src="main.js"></script>
+    
+    </body>
+    </html>

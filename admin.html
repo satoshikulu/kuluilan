@@ -313,7 +313,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
     import { supabase } from './supabase-config.js';
-    const BUCKET_NAME = 'ilan-fotograflari';
+    const BUCKET_NAME = 'ilan-resimleri';
     let editModal;
     const ADMIN_EMAIL = 'satoshinakamototokyo42@gmail.com';
 
@@ -526,26 +526,20 @@
     // Kullanıcıları çek
     async function fetchKullanicilar() {
         try {
-            // Call server-side admin function to list users
-            const res = await fetch('/.netlify/functions/admin-users', { method: 'GET' })
-            const payload = await res.json()
-            if (!res.ok) throw new Error(payload.error || 'Kullanıcılar alınamadı')
-            const users = payload.users || []
-            // Map to expected profile shape if necessary
-            const usersWithProfile = users.map(u => ({
-                id: u.id,
-                email: u.email,
-                created_at: u.created_at,
-                ad_soyad: u.user_metadata?.full_name || 'Belirtilmemiş',
-                telefon: u.user_metadata?.phone || 'Belirtilmemiş',
-                is_admin: false,
-                aktif: true
-            }))
-            displayKullanicilar(usersWithProfile)
-            document.getElementById('toplamKullanici').textContent = usersWithProfile.length
+            // Supabase'ten kullanıcıları doğrudan çek
+            const { data: profiles, error: profileError } = await supabase
+                .from('kullanici_profilleri')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (profileError) throw profileError;
+            
+            // Kullanıcı profillerini göster
+            displayKullanicilar(profiles);
+            document.getElementById('toplamKullanici').textContent = profiles.length;
         } catch (error) {
-            console.error('Kullanıcılar çekilirken hata:', error)
-            alert('Kullanıcılar yüklenirken hata: ' + (error.message || String(error)))
+            console.error('Kullanıcılar çekilirken hata:', error);
+            alert('Kullanıcılar yüklenirken hata: ' + (error.message || String(error)));
         }
     }
 
@@ -586,36 +580,38 @@
     // Kullanıcı durumu değiştir (aktif/pasif)
     async function toggleUserStatus(userId, newStatus) {
         try {
-            const res = await fetch('/.netlify/functions/admin-users', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'toggleActive', userId, aktif: newStatus })
-            })
-            const payload = await res.json()
-            if (!res.ok) throw new Error(payload.error || 'Güncelleme başarısız')
-            alert(`Kullanıcı ${newStatus ? 'aktifleştirildi' : 'pasifleştirildi'}`)
-            fetchKullanicilar()
+            const { data, error } = await supabase
+                .from('kullanici_profilleri')
+                .update({ aktif: newStatus })
+                .eq('id', userId)
+                .select();
+            
+            if (error) throw error;
+            
+            alert(`Kullanıcı ${newStatus ? 'aktifleştirildi' : 'pasifleştirildi'}`);
+            fetchKullanicilar();
         } catch (error) {
-            console.error('Kullanıcı durumu değiştirme hatası:', error)
-            alert('Kullanıcı durumu değiştirilirken hata: ' + (error.message || String(error)))
+            console.error('Kullanıcı durumu değiştirme hatası:', error);
+            alert('Kullanıcı durumu değiştirilirken hata: ' + (error.message || String(error)));
         }
     }
 
     // Admin yetkisi değiştir
     async function toggleAdminStatus(userId, newAdminStatus) {
         try {
-            const res = await fetch('/.netlify/functions/admin-users', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'toggleAdmin', userId, isAdmin: newAdminStatus })
-            })
-            const payload = await res.json()
-            if (!res.ok) throw new Error(payload.error || 'Güncelleme başarısız')
-            alert(`Kullanıcıya ${newAdminStatus ? 'admin yetkisi verildi' : 'admin yetkisi kaldırıldı'}`)
-            fetchKullanicilar()
+            const { data, error } = await supabase
+                .from('kullanici_profilleri')
+                .update({ is_admin: newAdminStatus })
+                .eq('id', userId)
+                .select();
+            
+            if (error) throw error;
+            
+            alert(`Kullanıcıya ${newAdminStatus ? 'admin yetkisi verildi' : 'admin yetkisi kaldırıldı'}`);
+            fetchKullanicilar();
         } catch (error) {
-            console.error('Admin yetkisi değiştirme hatası:', error)
-            alert('Admin yetkisi değiştirilirken hata: ' + (error.message || String(error)))
+            console.error('Admin yetkisi değiştirme hatası:', error);
+            alert('Admin yetkisi değiştirilirken hata: ' + (error.message || String(error)));
         }
     }
 
@@ -625,16 +621,32 @@
             return;
         }
         try {
-            const res = await fetch('/.netlify/functions/admin-users?userId=' + encodeURIComponent(userId), {
-                method: 'DELETE'
-            })
-            const payload = await res.json()
-            if (!res.ok) throw new Error(payload.error || 'Silme başarısız')
-            alert('Kullanıcı başarıyla silindi')
-            fetchKullanicilar()
+            // Önce kullanıcının ilanlarını sil
+            const { error: ilanError } = await supabase
+                .from('ilanlar')
+                .delete()
+                .eq('user_id', userId);
+            
+            if (ilanError) throw ilanError;
+            
+            // Ardından kullanıcı profilini sil
+            const { error: profileError } = await supabase
+                .from('kullanici_profilleri')
+                .delete()
+                .eq('id', userId);
+            
+            if (profileError) throw profileError;
+            
+            // Son olarak auth kullanıcısını sil
+            const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+            
+            if (authError) throw authError;
+            
+            alert('Kullanıcı başarıyla silindi');
+            fetchKullanicilar();
         } catch (error) {
-            console.error('Kullanıcı silme hatası:', error)
-            alert('Kullanıcı silinirken hata: ' + (error.message || String(error)))
+            console.error('Kullanıcı silme hatası:', error);
+            alert('Kullanıcı silinirken hata: ' + (error.message || String(error)));
         }
     }
 
@@ -684,5 +696,6 @@
         }
     }
     </script>
+    <script src="env.js"></script>
 </body>
 </html> 

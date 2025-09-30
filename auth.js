@@ -52,9 +52,9 @@ function login(email, password) {
             
             console.log("Giriş başarılı:", data.user);
             // Admin kontrolü
-                if (email === 'satoshinakamototokyo42@gmail.com') {
-                    // Admin dashboard'a yönlendir
-                    window.location.href = '/admin.html';
+            if (email === 'satoshinakamototokyo42@gmail.com') {
+                // Admin dashboard'a yönlendir
+                window.location.href = '/admin.html';
             } else {
                 // Normal kullanıcı dashboard'a yönlendir
                 window.location.href = '/user-dashboard.html';
@@ -99,49 +99,4 @@ async function logout() {
     }
 }
 
-// Form submit işleyicisi örneği - Kayıt
-function handleRegisterFormSubmit(event) {
-    event.preventDefault();
-    
-    const email = event.target.email.value;
-    const password = event.target.password.value;
-    
-    register(email, password)
-        .then((result) => {
-            if (result.success) {
-                // Başarılı kayıt sonrası yönlendirme veya UI güncelleme
-                alert('Kayıt başarılı! Hoş geldiniz.');
-                // Örnek: window.location.href = '/dashboard';
-            } else {
-                // Hata mesajını göster
-                alert('Kayıt sırasında bir hata oluştu: ' + result.error);
-            }
-        });
-}
-
-// Form submit işleyicisi örneği - Giriş
-function handleLoginFormSubmit(event) {
-    event.preventDefault();
-    
-    const email = event.target.email.value;
-    const password = event.target.password.value;
-    
-    login(email, password)
-        .then((result) => {
-            if (result.success) {
-                // Başarılı giriş sonrası yönlendirme veya UI güncelleme
-                alert('Giriş başarılı! Hoş geldiniz.');
-                // Admin kontrolü
-                    if (email === 'satoshinakamototokyo42@gmail.com') {
-                        window.location.href = '/admin.html';
-                } else {
-                    window.location.href = '/user-dashboard.html';
-                }
-            } else {
-                // Hata mesajını göster
-                alert('Giriş sırasında bir hata oluştu: ' + result.error);
-            }
-        });
-}
-
-export { register, login, logout, handleRegisterFormSubmit, handleLoginFormSubmit };
+export { register, login, logout };

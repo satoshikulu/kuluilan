@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap / Üye Ol - Kulu Emlak Pazarı</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 20px;
+        }
+        .auth-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        .auth-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        .auth-form {
+            padding: 30px;
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+        }
+        .btn-auth {
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            border: none;
+        }
+        .btn-register {
+            background: linear-gradient(135deg, #e74c3c 0%, #f39c12 100%);
+            border: none;
+        }
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+        .success-message {
+            color: #27ae60;
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="auth-container">
+                    <div class="auth-header">
+                        <h2><i class="fas fa-home me-2"></i>Kulu Emlak Pazarı</h2>
+                        <p class="mb-0">Giriş Yap veya Üye Ol</p>
+                    </div>
+                    
+                    <div class="auth-form">
+                        <!-- Login Form -->
+                        <div id="loginForm">
+                            <h4 class="text-center mb-4">Giriş Yap</h4>
+                            <form id="userLoginForm">
+                                <div class="mb-3">
+                                    <label for="loginPhone" class="form-label">Telefon Numarası</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                        <input type="tel" class="form-control" id="loginPhone" placeholder="5XXXXXXXXX" pattern="[0-9]{10}" required>
+                                    </div>
+                                    <div id="loginPhoneError" class="error-message d-none"></div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="loginPassword" class="form-label">Şifre</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        <input type="password" class="form-control" id="loginPassword" placeholder="Şifrenizi girin" required>
+                                    </div>
+                                    <div id="loginPasswordError" class="error-message d-none"></div>
+                                </div>
+                                
+                                <div class="d-grid mb-3">
+                                    <button type="submit" class="btn btn-auth btn-login">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap
+                                    </button>
+                                </div>
+                                
+                                <div class="auth-toggle">
+                                    <p>Hesabınız yok mu? <a href="#" id="showRegister">Üye Ol</a></p>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Register Form -->
+                        <div id="registerForm" class="d-none">
+                            <h4 class="text-center mb-4">Üye Ol</h4>
+                            <form id="userRegisterForm">
+                                <div class="mb-3">
+                                    <label for="registerName" class="form-label">Ad Soyad</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" class="form-control" id="registerName" placeholder="Adınızı ve soyadınızı girin" required>
+                                    </div>
+                                    <div id="registerNameError" class="error-message d-none"></div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="registerPhone" class="form-label">Telefon Numarası</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                        <input type="tel" class="form-control" id="registerPhone" placeholder="5XXXXXXXXX" pattern="[0-9]{10}" required>
+                                    </div>
+                                    <div id="registerPhoneError" class="error-message d-none"></div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="registerPassword" class="form-label">Şifre</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        <input type="password" class="form-control" id="registerPassword" placeholder="Şifrenizi girin" minlength="6" required>
+                                    </div>
+                                    <div id="registerPasswordError" class="error-message d-none"></div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="registerPasswordConfirm" class="form-label">Şifre Tekrar</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        <input type="password" class="form-control" id="registerPasswordConfirm" placeholder="Şifrenizi tekrar girin" required>
+                                    </div>
+                                    <div id="registerPasswordConfirmError" class="error-message d-none"></div>
+                                </div>
+                                
+                                <div class="d-grid mb-3">
+                                    <button type="submit" class="btn btn-auth btn-register">
+                                        <i class="fas fa-user-plus me-2"></i>Üye Ol
+                                    </button>
+                                </div>
+                                
+                                <div class="auth-toggle">
+                                    <p>Zaten hesabınız var mı? <a href="#" id="showLogin">Giriş Yap</a></p>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Success Message -->
+                        <div id="successMessage" class="alert alert-success d-none" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <span id="successMessageText"></span>
+                        </div>
+                        
+                        <!-- Error Message -->
+                        <div id="errorMessage" class="alert alert-danger d-none" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <span id="errorMessageText"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="env.js"></script>
+    <script type="module">
+        import { supabase, getCurrentUser, updateUserProfile } from './supabase-config.js';
+        
+        // Toggle between login and register forms
+        document.getElementById('showRegister').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('loginForm').classList.add('d-none');
+            document.getElementById('registerForm').classList.remove('d-none');
+            hideMessages();
+        });
+        
+        document.getElementById('showLogin').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('registerForm').classList.add('d-none');
+            document.getElementById('loginForm').classList.remove('d-none');
+            hideMessages();
+        });
+        
+        // Hide all messages
+        function hideMessages() {
+            document.getElementById('successMessage').classList.add('d-none');
+            document.getElementById('errorMessage').classList.add('d-none');
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            document.getElementById('successMessageText').textContent = message;
+            document.getElementById('successMessage').classList.remove('d-none');
+            document.getElementById('errorMessage').classList.add('d-none');
+        }
+        
+        // Show error message
+        function showError(message) {
+            document.getElementById('errorMessageText').textContent = message;
+            document.getElementById('errorMessage').classList.remove('d-none');
+            document.getElementById('successMessage').classList.add('d-none');
+        }
+        
+        // Clear all errors
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.classList.add('d-none');
+                el.textContent = '';
+            });
+        }
+        
+        // Validate phone number
+        function validatePhone(phone) {
+            const phoneRegex = /^[0-9]{10}$/;
+            return phoneRegex.test(phone);
+        }
+        
+        // Login form submission
+        document.getElementById('userLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            clearErrors();
+            
+            const phone = document.getElementById('loginPhone').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            // Validation
+            let isValid = true;
+            
+            if (!phone) {
+                document.getElementById('loginPhoneError').textContent = 'Telefon numarası boş bırakılamaz.';
+                document.getElementById('loginPhoneError').classList.remove('d-none');
+                isValid = false;
+            } else if (!validatePhone(phone)) {
+                document.getElementById('loginPhoneError').textContent = 'Geçerli bir telefon numarası girin (10 haneli).';
+                document.getElementById('loginPhoneError').classList.remove('d-none');
+                isValid = false;
+            }
+            
+            if (!password) {
+                document.getElementById('loginPasswordError').textContent = 'Şifre boş bırakılamaz.';
+                document.getElementById('loginPasswordError').classList.remove('d-none');
+                isValid = false;
+            }
+            
+            if (!isValid) return;
+            
+            try {
+                // Convert phone to email format for Supabase
+                const email = `${phone}@phone.local`;
+                
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                showSuccess('Giriş başarılı! Ana sayfaya yönlendiriliyorsunuz...');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
+            } catch (error) {
+                showError('Giriş başarısız: ' + error.message);
+            }
+        });
+        
+        // Register form submission
+        document.getElementById('userRegisterForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            clearErrors();
+            
+            const name = document.getElementById('registerName').value.trim();
+            const phone = document.getElementById('registerPhone').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+            
+            // Validation
+            let isValid = true;
+            
+            if (!name) {
+                document.getElementById('registerNameError').textContent = 'Ad soyad boş bırakılamaz.';
+                document.getElementById('registerNameError').classList.remove('d-none');
+                isValid = false;
+            }
+            
+            if (!phone) {
+                document.getElementById('registerPhoneError').textContent = 'Telefon numarası boş bırakılamaz.';
+                document.getElementById('registerPhoneError').classList.remove('d-none');
+                isValid = false;
+            } else if (!validatePhone(phone)) {
+                document.getElementById('registerPhoneError').textContent = 'Geçerli bir telefon numarası girin (10 haneli).';
+                document.getElementById('registerPhoneError').classList.remove('d-none');
+                isValid = false;
+            }
+            
+            if (!password) {
+                document.getElementById('registerPasswordError').textContent = 'Şifre boş bırakılamaz.';
+                document.getElementById('registerPasswordError').classList.remove('d-none');
+                isValid = false;
+            } else if (password.length < 6) {
+                document.getElementById('registerPasswordError').textContent = 'Şifre en az 6 karakter olmalıdır.';
+                document.getElementById('registerPasswordError').classList.remove('d-none');
+                isValid = false;
+            }
+            
+            if (!passwordConfirm) {
+                document.getElementById('registerPasswordConfirmError').textContent = 'Şifre tekrar boş bırakılamaz.';
+                document.getElementById('registerPasswordConfirmError').classList.remove('d-none');
+                isValid = false;
+            } else if (password !== passwordConfirm) {
+                document.getElementById('registerPasswordConfirmError').textContent = 'Şifreler eşleşmiyor.';
+                document.getElementById('registerPasswordConfirmError').classList.remove('d-none');
+                isValid = false;
+            }
+            
+            if (!isValid) return;
+            
+            try {
+                // Check if user already exists
+                const email = `${phone}@phone.local`;
+                
+                // First, try to sign up
+                const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                    email: email,
+                    password: password
+                });
+                
+                if (signUpError) throw signUpError;
+                
+                // If signup successful, update user profile
+                if (signUpData.user) {
+                    const { error: profileError } = await updateUserProfile(signUpData.user.id, {
+                        ad_soyad: name,
+                        telefon: phone
+                    });
+                    
+                    if (profileError) throw profileError;
+                    
+                    showSuccess('Kayıt başarılı! Giriş yapabilirsiniz.');
+                    // Switch to login form
+                    setTimeout(() => {
+                        document.getElementById('registerForm').classList.add('d-none');
+                        document.getElementById('loginForm').classList.remove('d-none');
+                        document.getElementById('userRegisterForm').reset();
+                    }, 2000);
+                }
+            } catch (error) {
+                showError('Kayıt başarısız: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

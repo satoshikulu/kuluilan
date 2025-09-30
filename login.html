@@ -27,16 +27,16 @@
 
             <form id="loginForm" class="space-y-6">
                 <div>
-                    <label for="adSoyad" class="block text-sm font-medium text-gray-700">Ad Soyad</label>
-                    <input type="text" id="adSoyad" name="adSoyad" required
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                </div>
-
-                <div>
                     <label for="telefon" class="block text-sm font-medium text-gray-700">Telefon</label>
                     <input type="tel" id="telefon" name="telefon" required
                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                           pattern="[0-9]{10,11}" placeholder="5XX XXX XX XX">
+                           pattern="[0-9]{10}" placeholder="5XXXXXXXXX">
+                </div>
+                
+                <div>
+                    <label for="sifre" class="block text-sm font-medium text-gray-700">Şifre</label>
+                    <input type="password" id="sifre" name="sifre" required
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 </div>
 
                 <div>
@@ -58,31 +58,34 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { supabase } from './supabase-config.js';
+        
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const adSoyad = document.getElementById('adSoyad').value;
             const telefon = document.getElementById('telefon').value;
+            const sifre = document.getElementById('sifre').value;
+            
+            // Telefon numarasını email formatına çevir
+            const email = `${telefon}@phone.local`;
 
             try {
-                const response = await fetch('/.netlify/functions/kullanici-giris', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ ad_soyad: adSoyad, telefon })
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: sifre
                 });
 
-                const data = await response.json();
+                if (error) {
+                    alert('Giriş başarısız: ' + error.message);
+                    return;
+                }
 
-                if (data.success) {
+                if (data.user) {
                     // Kullanıcı bilgilerini localStorage'a kaydet
                     localStorage.setItem('user', JSON.stringify(data.user));
                     // Ana sayfaya yönlendir
                     window.location.href = '/';
-                } else {
-                    alert(data.message || 'Giriş başarısız!');
                 }
             } catch (error) {
                 console.error('Giriş hatası:', error);
@@ -90,5 +93,6 @@
             }
         });
     </script>
+    <script src="env.js"></script>
 </body>
-</html> 
+</html>

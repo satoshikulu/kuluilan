@@ -65,37 +65,11 @@
         <div id="listResult" class="result"></div>
     </div>
 
-    <script>
-        // Global error handler to surface errors
-        window.addEventListener('error', function(e) {
-            const boxes = [
-                document.getElementById('connectionResult'),
-                document.getElementById('addResult'),
-                document.getElementById('listResult')
-            ].filter(Boolean);
-            boxes.forEach(b => b.innerHTML = `<span class="error">❌ Global hata: ${e.message}</span>`);
-            console.error('Global error:', e.error || e.message);
-        });
-    </script>
     <script type="module">
-        (async () => {
-        const connBox = document.getElementById('connectionResult');
-        connBox.innerHTML = 'Hazırlanıyor...';
-        try {
-            // Wait for env to be available before importing supabase-config
-            if (!window.__ENV) {
-                connBox.innerHTML = 'ENV yüklenmesi bekleniyor...';
-                await new Promise(resolve => window.addEventListener('DOMContentLoaded', resolve));
-            }
-            if (!window.__ENV || !window.__ENV.VITE_SUPABASE_URL || !window.__ENV.VITE_SUPABASE_ANON_KEY) {
-                connBox.innerHTML = '<span class="error">❌ ENV eksik: VITE_SUPABASE_URL veya VITE_SUPABASE_ANON_KEY tanımlı değil.</span>';
-                return;
-            }
-            connBox.innerHTML = 'Supabase client import ediliyor...';
-            const { supabase } = await import('./supabase-config.js');
+        import { supabase } from './supabase-config.js';
 
         // Bağlantı testi
-        async function runConnectionTest() {
+        document.getElementById('testConnection').addEventListener('click', async () => {
             const resultDiv = document.getElementById('connectionResult');
             
             try {
@@ -118,9 +92,7 @@
                 console.error('Supabase hatası:', error);
                 resultDiv.innerHTML = `<span class="error">❌ Supabase hatası: ${error.message}</span>`;
             }
-        }
-
-        document.getElementById('testConnection').addEventListener('click', runConnectionTest);
+        });
 
         // Test ilanı ekleme
         document.getElementById('addTestListing').addEventListener('click', async () => {
@@ -187,16 +159,6 @@
                 resultDiv.innerHTML = `<span class="error">❌ İlan listeleme hatası: ${error.message}</span>`;
             }
         });
-
-        // Auto-run connection test on page load
-            window.addEventListener('DOMContentLoaded', () => {
-                runConnectionTest();
-            });
-        } catch (e) {
-            console.error('Başlatma hatası:', e);
-            connBox.innerHTML = `<span class="error">❌ Başlatma hatası: ${e.message || e}</span>`;
-        }
-        })();
     </script>
     <script src="env.js"></script>
 </body>
