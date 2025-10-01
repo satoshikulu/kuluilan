@@ -33,73 +33,21 @@
                 </div>
                 
                 <div class="card mb-4">
-                    <div class="card-header">
                         <h3>Giriş/Kayıt Formu Testi</h3>
                     </div>
                     <div class="card-body">
                         <a href="giris-kayit.html" class="btn btn-primary">Giriş/Kayıt Sayfasını Aç</a>
                         <p class="mt-2">Test edilecek alanlar:</p>
                         <ul>
-                            <li>Giriş formu:
-                                <ul>
-                                    <li>Telefon (10 haneli sayı formatı)</li>
-                                    <li>Şifre (zorunlu alan)</li>
-                                </ul>
-                            </li>
-                            <li>Kayıt formu:
-                                <ul>
-                                    <li>Ad Soyad (zorunlu alan)</li>
-                                    <li>Telefon (10 haneli sayı formatı)</li>
-                                    <li>Şifre (en az 6 karakter)</li>
-                                    <li>Şifre Tekrar (şifre ile eşleşmeli)</li>
-                                </ul>
-                            </li>
+                            <li>Giriş formu: Telefon (10 haneli). Şifresiz giriş (telefonla).</li>
+                            <li>Kayıt formu: Ad Soyad + Telefon. Admin onayı sonrası giriş.</li>
                         </ul>
                     </div>
                 </div>
                 
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h3>Modal Tabanlı Giriş Testi</h3>
-                    </div>
-                    <div class="card-body">
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#authModal">Modalı Aç</button>
-                        <p class="mt-2">Test edilecek alanlar:</p>
-                        <ul>
-                            <li>Giriş formu:
-                                <ul>
-                                    <li>Telefon (10 haneli sayı formatı)</li>
-                                    <li>Şifre (zorunlu alan)</li>
-                                </ul>
-                            </li>
-                            <li>Kayıt formu:
-                                <ul>
-                                    <li>Ad Soyad (zorunlu alan)</li>
-                                    <li>Telefon (10 haneli sayı formatı)</li>
-                                    <li>Şifre (en az 6 karakter)</li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Auth Modal (from index.html) -->
-    <div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Giriş Yap / Üye Ol</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <ul class="nav nav-tabs" id="authTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">Giriş Yap</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
+{{ ... }}
                             <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab">Üye Ol</button>
                         </li>
                     </ul>
@@ -109,11 +57,7 @@
                                 <div class="mb-3">
                                     <label for="login-phone" class="form-label">Telefon Numarası</label>
                                     <input type="tel" class="form-control" id="login-phone" required placeholder="5XXXXXXXXX" pattern="[0-9]{10}">
-                                    <div class="form-text">10 haneli telefon numaranızı girin (örn: 5551234567)</div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="login-password" class="form-label">Şifre</label>
-                                    <input type="password" class="form-control" id="login-password" required>
+                                    <div class="form-text">10 haneli telefon numaranızı girin. Admin onayı sonrası sadece telefonla giriş yapılır.</div>
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
                             </form>
@@ -127,12 +71,7 @@
                                 <div class="mb-3">
                                     <label for="register-phone" class="form-label">Telefon Numarası</label>
                                     <input type="tel" class="form-control" id="register-phone" required placeholder="5XXXXXXXXX" pattern="[0-9]{10}">
-                                    <div class="form-text">10 haneli telefon numaranızı girin (örn: 5551234567)</div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="register-password" class="form-label">Şifre</label>
-                                    <input type="password" class="form-control" id="register-password" required minlength="6">
-                                    <div class="form-text">En az 6 karakter uzunluğunda olmalıdır</div>
+                                    <div class="form-text">10 haneli telefon numaranızı girin. Üyelik talebi admin onayına gönderilir; onay sonrası telefonla giriş yapabilirsiniz.</div>
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100">Üye Ol</button>
                             </form>
@@ -148,59 +87,77 @@
         // This would normally be in main.js, but we'll include it here for testing
         import { register, login } from './auth.js';
         import { supabase } from './supabase-config.js';
-        
+
         function normalizePhone(raw) {
             const digits = (raw || '').replace(/[^0-9]/g, '');
             return digits;
         }
 
-        function phoneToEmail(phoneDigits) {
-            return `${phoneDigits}@phone.local`;
-        }
-        
+        function phoneToEmail(phoneDigits) { return `${phoneDigits}@example.com`; }
+        function derivePassword(phoneDigits) { return `kP@z-${phoneDigits}-#2025!`; }
+
         // Setup modal form handlers
         document.addEventListener('DOMContentLoaded', function() {
-            // Login form submit handler
+            // Login form submit handler (phone only)
             const loginForm = document.querySelector('#login-form');
             if (loginForm) {
                 loginForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const phoneInput = document.querySelector('#login-phone');
-                    const passwordInput = document.querySelector('#login-password');
                     const phone = phoneInput ? phoneInput.value : '';
-                    const password = passwordInput ? passwordInput.value : '';
                     const phoneDigits = normalizePhone(phone);
                     const syntheticEmail = phoneToEmail(phoneDigits);
-                    
+
                     // Close modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
                     if (modal) modal.hide();
-                    
-                    // In a real app, we would call login here
-                    alert(`Giriş denemesi: ${syntheticEmail}, Şifre: ${password}`);
+
+                    const password = derivePassword(phoneDigits);
+                    const { data, error } = await supabase.auth.signInWithPassword({ email: syntheticEmail, password });
+                    if (error) { alert('Giriş başarısız: ' + error.message); return; }
+                    // Admin approval check
+                    const { data: prof, error: profErr } = await supabase
+                        .from('kullanici_profilleri')
+                        .select('onayli')
+                        .eq('id', data.user.id)
+                        .maybeSingle();
+                    if (profErr) { alert('Onay kontrol hatası: ' + profErr.message); return; }
+                    if (!prof || prof.onayli !== true) {
+                        await supabase.auth.signOut();
+                        alert('Hesabınız henüz admin tarafından onaylanmadı.');
+                        return;
+                    }
+                    alert('Giriş başarılı.');
                 });
             }
 
-            // Register form submit handler
+            // Register form submit handler (name + phone only)
             const registerForm = document.querySelector('#register-form');
             if (registerForm) {
                 registerForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const nameInput = document.querySelector('#register-name');
                     const phoneInput = document.querySelector('#register-phone');
-                    const passwordInput = document.querySelector('#register-password');
                     const name = nameInput ? nameInput.value : '';
                     const phone = phoneInput ? phoneInput.value : '';
-                    const password = passwordInput ? passwordInput.value : '';
                     const phoneDigits = normalizePhone(phone);
                     const syntheticEmail = phoneToEmail(phoneDigits);
-                    
+
                     // Close modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
                     if (modal) modal.hide();
-                    
-                    // In a real app, we would call register here
-                    alert(`Kayıt denemesi: ${name}, ${syntheticEmail}, Şifre: ${password}`);
+
+                    const password = derivePassword(phoneDigits);
+                    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email: syntheticEmail, password });
+                    if (signUpError) { alert('Kayıt başarısız: ' + signUpError.message); return; }
+                    if (signUpData.user) {
+                        const { error: profileError } = await supabase
+                            .from('kullanici_profilleri')
+                            .upsert({ id: signUpData.user.id, ad_soyad: name, telefon: phoneDigits, onayli: false })
+                            .select();
+                        if (profileError) { alert('Profil kaydı hatası: ' + profileError.message); return; }
+                        alert('Kayıt alındı! Admin onayından sonra telefon ile giriş yapabilirsiniz.');
+                    }
                 });
             }
         });

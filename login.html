@@ -33,11 +33,7 @@
                            pattern="[0-9]{10}" placeholder="5XXXXXXXXX">
                 </div>
                 
-                <div>
-                    <label for="sifre" class="block text-sm font-medium text-gray-700">Şifre</label>
-                    <input type="password" id="sifre" name="sifre" required
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                </div>
+                <!-- Şifre alanı kaldırıldı: telefonla şifresiz giriş -->
 
                 <div>
                     <button type="submit"
@@ -61,20 +57,21 @@
     <script type="module">
         import { supabase } from './supabase-config.js';
         
+        // Helpers
+        function phoneToEmail(phone) { return `${phone}@example.com`; }
+        function derivePassword(phone) { return `kP@z-${phone}-#2025!`; }
+
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const telefon = document.getElementById('telefon').value;
-            const sifre = document.getElementById('sifre').value;
             
             // Telefon numarasını email formatına çevir
-            const email = `${telefon}@phone.local`;
+            const email = phoneToEmail(telefon);
 
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: sifre
-                });
+                const password = derivePassword(telefon);
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
                 if (error) {
                     alert('Giriş başarısız: ' + error.message);
@@ -82,6 +79,7 @@
                 }
 
                 if (data.user) {
+                    // Opsiyonel: admin onayı kontrolü yapılabilir
                     // Kullanıcı bilgilerini localStorage'a kaydet
                     localStorage.setItem('user', JSON.stringify(data.user));
                     // Ana sayfaya yönlendir

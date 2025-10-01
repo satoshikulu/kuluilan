@@ -73,93 +73,32 @@
                         <h2><i class="fas fa-home me-2"></i>Kulu Emlak Pazarı</h2>
                         <p class="mb-0">Giriş Yap veya Üye Ol</p>
                     </div>
-                    
                     <div class="auth-form">
-                        <!-- Login Form -->
-                        <div id="loginForm">
-                            <h4 class="text-center mb-4">Giriş Yap</h4>
-                            <form id="userLoginForm">
-                                <div class="mb-3">
-                                    <label for="loginPhone" class="form-label">Telefon Numarası</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                        <input type="tel" class="form-control" id="loginPhone" placeholder="5XXXXXXXXX" pattern="[0-9]{10}" required>
-                                    </div>
-                                    <div id="loginPhoneError" class="error-message d-none"></div>
+                        <h4 class="text-center mb-4">Giriş / Üyelik Talebi</h4>
+                        <form id="singleAuthForm" novalidate>
+                            <div class="mb-3">
+                                <label for="fullName" class="form-label">Ad Soyad</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" id="fullName" placeholder="Adınızı ve soyadınızı girin" required>
                                 </div>
-                                
-                                <div class="mb-3">
-                                    <label for="loginPassword" class="form-label">Şifre</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                        <input type="password" class="form-control" id="loginPassword" placeholder="Şifrenizi girin" required>
-                                    </div>
-                                    <div id="loginPasswordError" class="error-message d-none"></div>
+                                <div id="nameError" class="error-message d-none"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Telefon Numarası</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    <input type="tel" class="form-control" id="phone" placeholder="5XXXXXXXXX" pattern="[0-9]{10}" required>
                                 </div>
-                                
-                                <div class="d-grid mb-3">
-                                    <button type="submit" class="btn btn-auth btn-login">
-                                        <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap
-                                    </button>
-                                </div>
-                                
-                                <div class="auth-toggle">
-                                    <p>Hesabınız yok mu? <a href="#" id="showRegister">Üye Ol</a></p>
-                                </div>
-                            </form>
-                        </div>
-                        
-                        <!-- Register Form -->
-                        <div id="registerForm" class="d-none">
-                            <h4 class="text-center mb-4">Üye Ol</h4>
-                            <form id="userRegisterForm">
-                                <div class="mb-3">
-                                    <label for="registerName" class="form-label">Ad Soyad</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                        <input type="text" class="form-control" id="registerName" placeholder="Adınızı ve soyadınızı girin" required>
-                                    </div>
-                                    <div id="registerNameError" class="error-message d-none"></div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="registerPhone" class="form-label">Telefon Numarası</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                        <input type="tel" class="form-control" id="registerPhone" placeholder="5XXXXXXXXX" pattern="[0-9]{10}" required>
-                                    </div>
-                                    <div id="registerPhoneError" class="error-message d-none"></div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="registerPassword" class="form-label">Şifre</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                        <input type="password" class="form-control" id="registerPassword" placeholder="Şifrenizi girin" minlength="6" required>
-                                    </div>
-                                    <div id="registerPasswordError" class="error-message d-none"></div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="registerPasswordConfirm" class="form-label">Şifre Tekrar</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                        <input type="password" class="form-control" id="registerPasswordConfirm" placeholder="Şifrenizi tekrar girin" required>
-                                    </div>
-                                    <div id="registerPasswordConfirmError" class="error-message d-none"></div>
-                                </div>
-                                
-                                <div class="d-grid mb-3">
-                                    <button type="submit" class="btn btn-auth btn-register">
-                                        <i class="fas fa-user-plus me-2"></i>Üye Ol
-                                    </button>
-                                </div>
-                                
-                                <div class="auth-toggle">
-                                    <p>Zaten hesabınız var mı? <a href="#" id="showLogin">Giriş Yap</a></p>
-                                </div>
-                            </form>
-                        </div>
+                                <div id="phoneError" class="error-message d-none"></div>
+                            </div>
+                            <div class="form-text mb-3">Bilgileriniz admin onayına gönderilir. Onay sonrası sadece telefon numaranızla giriş yapabilirsiniz.</div>
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-auth btn-login">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Gönder / Giriş Yap
+                                </button>
+                            </div>
+                        </form>
                         
                         <!-- Success Message -->
                         <div id="successMessage" class="alert alert-success d-none" role="alert">
@@ -182,22 +121,7 @@
     <script src="env.js"></script>
     <script type="module">
         import { supabase, getCurrentUser, updateUserProfile } from './supabase-config.js';
-        
-        // Toggle between login and register forms
-        document.getElementById('showRegister').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('loginForm').classList.add('d-none');
-            document.getElementById('registerForm').classList.remove('d-none');
-            hideMessages();
-        });
-        
-        document.getElementById('showLogin').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('registerForm').classList.add('d-none');
-            document.getElementById('loginForm').classList.remove('d-none');
-            hideMessages();
-        });
-        
+
         // Hide all messages
         function hideMessages() {
             document.getElementById('successMessage').classList.add('d-none');
@@ -231,140 +155,69 @@
             const phoneRegex = /^[0-9]{10}$/;
             return phoneRegex.test(phone);
         }
+        // Helpers for phone-only auth
+        function phoneToEmail(phone) {
+            const env = (typeof window !== 'undefined') ? (window.__ENV || {}) : {};
+            const domain = env.SYNTHETIC_EMAIL_DOMAIN || 'example.com';
+            return `${phone}@${domain}`;
+        }
+        function derivePassword(phone) { return `kP@z-${phone}-#2025!`; }
         
-        // Login form submission
-        document.getElementById('userLoginForm').addEventListener('submit', async function(e) {
+        // Tek form akışı: Ad Soyad + Telefon → Giriş dene; yoksa kayıt et; onay kontrolü yap
+        document.getElementById('singleAuthForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            clearErrors();
-            
-            const phone = document.getElementById('loginPhone').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            
-            // Validation
-            let isValid = true;
-            
-            if (!phone) {
-                document.getElementById('loginPhoneError').textContent = 'Telefon numarası boş bırakılamaz.';
-                document.getElementById('loginPhoneError').classList.remove('d-none');
-                isValid = false;
-            } else if (!validatePhone(phone)) {
-                document.getElementById('loginPhoneError').textContent = 'Geçerli bir telefon numarası girin (10 haneli).';
-                document.getElementById('loginPhoneError').classList.remove('d-none');
-                isValid = false;
-            }
-            
-            if (!password) {
-                document.getElementById('loginPasswordError').textContent = 'Şifre boş bırakılamaz.';
-                document.getElementById('loginPasswordError').classList.remove('d-none');
-                isValid = false;
-            }
-            
-            if (!isValid) return;
-            
+            hideMessages();
+
+            const name = document.getElementById('fullName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            let ok = true;
+            if (!name) { document.getElementById('nameError').textContent = 'Ad soyad zorunludur.'; document.getElementById('nameError').classList.remove('d-none'); ok = false; }
+            else { document.getElementById('nameError').classList.add('d-none'); }
+            if (!phone || !validatePhone(phone)) { document.getElementById('phoneError').textContent = 'Telefon 10 haneli olmalı.'; document.getElementById('phoneError').classList.remove('d-none'); ok = false; }
+            else { document.getElementById('phoneError').classList.add('d-none'); }
+            if (!ok) return;
+
+            const email = phoneToEmail(phone);
+            const password = derivePassword(phone);
+
             try {
-                // Convert phone to email format for Supabase
-                const email = `${phone}@phone.local`;
-                
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-                
-                if (error) throw error;
-                
-                showSuccess('Giriş başarılı! Ana sayfaya yönlendiriliyorsunuz...');
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 1500);
-            } catch (error) {
-                showError('Giriş başarısız: ' + error.message);
-            }
-        });
-        
-        // Register form submission
-        document.getElementById('userRegisterForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            clearErrors();
-            
-            const name = document.getElementById('registerName').value.trim();
-            const phone = document.getElementById('registerPhone').value.trim();
-            const password = document.getElementById('registerPassword').value;
-            const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
-            
-            // Validation
-            let isValid = true;
-            
-            if (!name) {
-                document.getElementById('registerNameError').textContent = 'Ad soyad boş bırakılamaz.';
-                document.getElementById('registerNameError').classList.remove('d-none');
-                isValid = false;
-            }
-            
-            if (!phone) {
-                document.getElementById('registerPhoneError').textContent = 'Telefon numarası boş bırakılamaz.';
-                document.getElementById('registerPhoneError').classList.remove('d-none');
-                isValid = false;
-            } else if (!validatePhone(phone)) {
-                document.getElementById('registerPhoneError').textContent = 'Geçerli bir telefon numarası girin (10 haneli).';
-                document.getElementById('registerPhoneError').classList.remove('d-none');
-                isValid = false;
-            }
-            
-            if (!password) {
-                document.getElementById('registerPasswordError').textContent = 'Şifre boş bırakılamaz.';
-                document.getElementById('registerPasswordError').classList.remove('d-none');
-                isValid = false;
-            } else if (password.length < 6) {
-                document.getElementById('registerPasswordError').textContent = 'Şifre en az 6 karakter olmalıdır.';
-                document.getElementById('registerPasswordError').classList.remove('d-none');
-                isValid = false;
-            }
-            
-            if (!passwordConfirm) {
-                document.getElementById('registerPasswordConfirmError').textContent = 'Şifre tekrar boş bırakılamaz.';
-                document.getElementById('registerPasswordConfirmError').classList.remove('d-none');
-                isValid = false;
-            } else if (password !== passwordConfirm) {
-                document.getElementById('registerPasswordConfirmError').textContent = 'Şifreler eşleşmiyor.';
-                document.getElementById('registerPasswordConfirmError').classList.remove('d-none');
-                isValid = false;
-            }
-            
-            if (!isValid) return;
-            
-            try {
-                // Check if user already exists
-                const email = `${phone}@phone.local`;
-                
-                // First, try to sign up
-                const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-                    email: email,
-                    password: password
-                });
-                
-                if (signUpError) throw signUpError;
-                
-                // If signup successful, update user profile
-                if (signUpData.user) {
-                    const { error: profileError } = await updateUserProfile(signUpData.user.id, {
-                        ad_soyad: name,
-                        telefon: phone
-                    });
-                    
-                    if (profileError) throw profileError;
-                    
-                    showSuccess('Kayıt başarılı! Giriş yapabilirsiniz.');
-                    // Switch to login form
-                    setTimeout(() => {
-                        document.getElementById('registerForm').classList.add('d-none');
-                        document.getElementById('loginForm').classList.remove('d-none');
-                        document.getElementById('userRegisterForm').reset();
-                    }, 2000);
+                // 1) Var olan kullanıcıyla giriş dene
+                let { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+                // 2) Hata invalid_credentials ise kayıt oluştur
+                if (error && (error.message || '').toLowerCase().includes('invalid')) {
+                    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
+                    if (signUpError) throw signUpError;
+                    if (signUpData.user) {
+                        // Profil oluştur / güncelle
+                        const { error: profileError } = await updateUserProfile(signUpData.user.id, { ad_soyad: name, telefon: phone, onayli: false });
+                        if (profileError) throw profileError;
+                        showSuccess('Talebiniz alındı. Admin onayı sonrası giriş yapabilirsiniz.');
+                        return;
+                    }
+                } else if (error) {
+                    throw error;
                 }
-            } catch (error) {
-                showError('Kayıt başarısız: ' + error.message);
+
+                // 3) Giriş başarılı ise onay kontrolü
+                const user = data?.user || (await getCurrentUser());
+                if (!user) throw new Error('Kullanıcı oturumu açılamadı');
+                const { data: prof, error: profErr } = await supabase
+                    .from('kullanici_profilleri')
+                    .select('onayli')
+                    .eq('id', user.id)
+                    .maybeSingle();
+                if (profErr) throw profErr;
+                if (!prof || prof.onayli !== true) {
+                    await supabase.auth.signOut();
+                    showError('Hesabınız henüz admin tarafından onaylanmadı.');
+                    return;
+                }
+                showSuccess('Giriş başarılı! Yönlendiriliyorsunuz...');
+                setTimeout(() => { window.location.href = 'index.html'; }, 700);
+            } catch (err) {
+                showError('İşlem başarısız: ' + (err?.message || String(err)));
             }
         });
     </script>
-</body>
-</html>

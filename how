@@ -1,0 +1,55 @@
+[33mcommit 26f50c7504de5f18f76891f5e88ed88711ee1029[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: satoshi <satoshinakamototokyo42@gmail.com>
+Date:   Tue Sep 30 16:20:14 2025 +0300
+
+    feat(admin): URL parametreleri ile otomatik giriş; chore(env): service role key kaldırıldı
+
+[1mdiff --git a/admin.html b/admin.html[m
+[1mindex 3a2ba25..1493c68 100644[m
+[1m--- a/admin.html[m
+[1m+++ b/admin.html[m
+[36m@@ -328,6 +328,8 @@[m
+         if (loginForm) {[m
+             loginForm.addEventListener('submit', handleAdminLogin);[m
+         }[m
+[32m+[m[32m        // URL parametreleri ile otomatik giriş dene[m
+[32m+[m[32m        autoLoginFromURL();[m
+     });[m
+ [m
+     // Admin Girişi (Supabase Auth)[m
+[36m@@ -352,6 +354,35 @@[m
+         }[m
+     }[m
+ [m
+[32m+[m[32m    // URL parametreleri ile otomatik giriş[m
+[32m+[m[32m    async function autoLoginFromURL() {[m
+[32m+[m[32m        try {[m
+[32m+[m[32m            const params = new URLSearchParams(window.location.search);[m
+[32m+[m[32m            const email = params.get('username') || params.get('email');[m
+[32m+[m[32m            const password = params.get('password') || params.get('pass');[m
+[32m+[m[32m            if (!email || !password) return;[m
+[32m+[m
+[32m+[m[32m            const { data, error } = await supabase.auth.signInWithPassword({ email, password });[m
+[32m+[m[32m            if (error) {[m
+[32m+[m[32m                alert('Otomatik giriş başarısız: ' + error.message);[m
+[32m+[m[32m                return;[m
+[32m+[m[32m            }[m
+[32m+[m[32m            if (email === ADMIN_EMAIL) {[m
+[32m+[m[32m                localStorage.setItem('adminLoggedIn', 'true');[m
+[32m+[m[32m                showAdminPanel();[m
+[32m+[m[32m            } else {[m
+[32m+[m[32m                alert('Otomatik giriş başarılı ancak admin yetkisi yok.');[m
+[32m+[m[32m            }[m
+[32m+[m[32m        } catch (e) {[m
+[32m+[m[32m            console.error('Otomatik giriş hatası:', e);[m
+[32m+[m[32m        } finally {[m
+[32m+[m[32m            // Güvenlik için parametreleri URL'den temizle[m
+[32m+[m[32m            const url = new URL(window.location.href);[m
+[32m+[m[32m            url.search = '';[m
+[32m+[m[32m            window.history.replaceState({}, document.title, url.toString());[m
+[32m+[m[32m        }[m
+[32m+[m[32m    }[m
+[32m+[m
+     // Admin paneli göster[m
+     function showAdminPanel() {[m
+         document.getElementById('loginForm').style.display = 'none';[m

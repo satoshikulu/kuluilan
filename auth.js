@@ -51,14 +51,6 @@ function login(email, password) {
             }
             
             console.log("Giriş başarılı:", data.user);
-            // Admin kontrolü
-            if (email === 'satoshinakamototokyo42@gmail.com') {
-                // Admin dashboard'a yönlendir
-                window.location.href = '/admin.html';
-            } else {
-                // Normal kullanıcı dashboard'a yönlendir
-                window.location.href = '/user-dashboard.html';
-            }
             return {
                 success: true,
                 user: data.user

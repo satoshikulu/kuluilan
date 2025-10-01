@@ -42,10 +42,12 @@ function updateUIAfterLogin(user) {
     // Kullanıcı bilgilerini göster
     const userInfo = document.getElementById('user-info');
     if (userInfo) {
-        // Show phone if synthetic phone email is used
+        // Show phone if synthetic phone email is used (e.g., 5551234567@example.com)
         let label = user.email || '';
-        if (label.endsWith('@phone.local')) {
-            label = label.replace('@phone.local', '');
+        // If email local-part is only digits, show it as phone number
+        const match = label.match(/^([0-9]+)@/);
+        if (match) {
+            label = match[1];
         }
         userInfo.textContent = `Hoş geldin, ${label}`;
         userInfo.style.display = 'block';
@@ -74,22 +76,31 @@ function normalizePhone(raw) {
 }
 
 function phoneToEmail(phoneDigits) {
-    return `${phoneDigits}@phone.local`;
+    // Use a configurable synthetic domain that passes email validation
+    const env = (typeof window !== 'undefined') ? (window.__ENV || {}) : {};
+    const domain = env.SYNTHETIC_EMAIL_DOMAIN || 'example.com';
+    return `${phoneDigits}@${domain}`;
+}
+
+// Derive a deterministic password from the phone number so user doesn't type one
+// Note: This is a UX convenience and not as secure as true passwordless with OTP.
+function derivePassword(phoneDigits) {
+    // Ensure minimum length and include mixed chars
+    return `kP@z-${phoneDigits}-#2025!`;
 }
 
 // Setup modal form handlers
 function setupModalForms() {
-    // Login form submit handler (guarded) using phone+password
+    // Login form submit handler using only phone (no password in UI)
     const loginForm = document.querySelector('#login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const phoneInput = document.querySelector('#login-phone');
-            const passwordInput = document.querySelector('#login-password');
             const phone = phoneInput ? phoneInput.value : '';
-            const password = passwordInput ? passwordInput.value : '';
             const phoneDigits = normalizePhone(phone);
             const syntheticEmail = phoneToEmail(phoneDigits);
+            const password = derivePassword(phoneDigits);
             
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
@@ -99,22 +110,44 @@ function setupModalForms() {
             if (!result.success) {
                 alert('Giriş başarısız: ' + result.error);
             }
+            // Admin approval check after login
+            try {
+                const user = await getCurrentUser();
+                if (user) {
+                    const { data: prof, error: profErr } = await supabase
+                        .from('kullanici_profilleri')
+                        .select('onayli')
+                        .eq('id', user.id)
+                        .maybeSingle();
+                    if (!profErr && prof) {
+                        if (prof.onayli !== true) {
+                            // Not approved: immediately sign out
+                            await supabase.auth.signOut();
+                            alert('Hesabınız henüz admin tarafından onaylanmadı.');
+                        } else {
+                            // Approved: redirect to homepage
+                            setTimeout(() => { window.location.href = 'index.html'; }, 300);
+                        }
+                    }
+                }
+            } catch (x) {
+                console.warn('Onay kontrolü yapılamadı:', x);
+            }
         });
     }
 
-    // Register form submit handler (guarded) using name+phone+password
+    // Register form submit handler using ad soyad + phone (no password in UI)
     const registerForm = document.querySelector('#register-form');
     if (registerForm) {
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const nameInput = document.querySelector('#register-name');
             const phoneInput = document.querySelector('#register-phone');
-            const passwordInput = document.querySelector('#register-password');
             const name = nameInput ? nameInput.value : '';
             const phone = phoneInput ? phoneInput.value : '';
-            const password = passwordInput ? passwordInput.value : '';
             const phoneDigits = normalizePhone(phone);
             const syntheticEmail = phoneToEmail(phoneDigits);
+            const password = derivePassword(phoneDigits);
             
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
@@ -128,12 +161,13 @@ function setupModalForms() {
                     // Ensure we have a user id then save profile
                     const user = await getCurrentUser();
                     if (user) {
-                        await updateUserProfile(user.id, { ad_soyad: name, telefon: phoneDigits });
+                        // Save profile with pending approval by default
+                        await updateUserProfile(user.id, { ad_soyad: name, telefon: phoneDigits, onayli: false });
                     }
                 } catch (err) {
                     console.warn('Profil kaydedilirken uyarı:', err);
                 }
-                alert('Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
+                alert('Kayıt alındı! Admin onayından sonra telefon numaranızla giriş yapabilirsiniz.');
             }
         });
     }

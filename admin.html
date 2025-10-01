@@ -204,6 +204,7 @@
                                     <th>Email</th>
                                     <th>Ad Soyad</th>
                                     <th>Telefon</th>
+                                    <th>Onay</th>
                                     <th>Yetki</th>
                                     <th>Durum</th>
                                     <th>Kayıt Tarihi</th>
@@ -583,6 +584,11 @@
                 <td>${kullanici.ad_soyad || 'Belirtilmemiş'}</td>
                 <td>${kullanici.telefon || 'Belirtilmemiş'}</td>
                 <td>
+                    <span class="badge ${kullanici.onayli ? 'bg-success' : 'bg-secondary'}">
+                        ${kullanici.onayli ? 'Onaylı' : 'Beklemede'}
+                    </span>
+                </td>
+                <td>
                     <span class="badge ${kullanici.is_admin ? 'bg-danger' : 'bg-primary'}">
                         ${kullanici.is_admin ? 'Admin' : 'Kullanıcı'}
                     </span>
@@ -594,6 +600,9 @@
                 </td>
                 <td>${new Date(kullanici.created_at).toLocaleString('tr-TR')}</td>
                 <td>
+                    ${kullanici.onayli ? '' : `<button class="btn btn-sm btn-success me-1" onclick="approveUser('${kullanici.id}')" title="Onayla">
+                        <i class="fas fa-check"></i>
+                    </button>`}
                     <button class="btn btn-sm btn-warning me-1" onclick="toggleUserStatus('${kullanici.id}', ${!kullanici.aktif})" title="${kullanici.aktif ? 'Pasifleştir' : 'Aktifleştir'}">
                         <i class="fas ${kullanici.aktif ? 'fa-user-slash' : 'fa-user-check'}"></i>
                     </button>
@@ -646,6 +655,23 @@
         }
     }
 
+    // Kullanıcı onayla (onayli = true)
+    async function approveUser(userId) {
+        try {
+            const { data, error } = await supabase
+                .from('kullanici_profilleri')
+                .update({ onayli: true })
+                .eq('id', userId)
+                .select();
+            if (error) throw error;
+            alert('Kullanıcı onaylandı.');
+            fetchKullanicilar();
+        } catch (error) {
+            console.error('Kullanıcı onaylama hatası:', error);
+            alert('Kullanıcı onaylanırken hata: ' + (error.message || String(error)));
+        }
+    }
+
     // Kullanıcı sil
     async function deleteUser(userId) {
         if (!confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve kullanıcının tüm ilanları da silinecektir.')) {
@@ -689,6 +715,7 @@
     window.deleteListing = deleteListing;
     window.saveEdit = saveEdit;
     window.applyFilters = applyFilters;
+    window.approveUser = approveUser;
     window.handleLogout = handleLogout;
 
     // İstatistikleri çek (gerekirse ek fonksiyon)
