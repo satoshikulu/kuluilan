@@ -2,26 +2,40 @@
 // Bu modul yalnizca Supabase kullanir. Firebase bagimliliklari yoktur.
 // Tarayici ortaminda calisir (ES Modules). supabase-client icin `supabase-config.js` kullanilir.
 
-import { supabase, getCurrentUser, uploadImage, saveImageToDatabase } from './supabase-config.js'
+import { supabase, uploadImage, saveImageToDatabase } from './supabase-config.js'
+import { getSession } from './auth.js'
 
 // Yardimci: FormData -> ilan kaydi mapleme
 function formDataToIlan(formData, userId) {
   const fiyatRaw = formData.get('fiyat')
   const fiyat = fiyatRaw ? Number(fiyatRaw) : null
 
-  return {
+  const ilanData = {
     baslik: formData.get('baslik') || '',
     aciklama: formData.get('aciklama') || '',
-  fiyat: Number.isFinite(fiyat) ? fiyat : 0,
-  kategori: formData.get('kategori') || '',
-  alt_kategori: formData.get('alt_kategori') || '',
-  konum: formData.get('konum') || '',
-  telefon: formData.get('telefon') || '',
-  mahalle: formData.get('mahalle') || '',
+    fiyat: Number.isFinite(fiyat) ? fiyat : 0,
+    kategori: formData.get('kategori') || '',
+    alt_kategori: formData.get('alt_kategori') || '',
+    konum: formData.get('konum') || '',
+    telefon: formData.get('telefon') || '',
+    mahalle: formData.get('mahalle') || '',
     onayli: false,
-    user_id: userId || null,
+    durum: 'beklemede',
     created_at: new Date().toISOString()
   }
+
+  // Üye ise user_id ekle
+  if (userId) {
+    ilanData.user_id = userId
+  } else {
+    // Üye değilse konuk bilgilerini ekle
+    ilanData.konuk_ad = formData.get('konuk_ad') || ''
+    ilanData.konuk_soyad = formData.get('konuk_soyad') || ''
+    ilanData.konuk_telefon = formData.get('konuk_telefon') || formData.get('telefon') || ''
+    ilanData.konuk_email = formData.get('konuk_email') || ''
+  }
+
+  return ilanData
 }
 
 // Medya dosyalarini FormData'dan al
@@ -34,14 +48,11 @@ function getMediaFiles(formData) {
   return files.filter(f => f && typeof f === 'object' && 'name' in f)
 }
 
-// 1) Kaydet: ilan + medya dosyalari
+// 1) Kaydet: ilan + medya dosyalari (üye veya konuk)
 export async function saveData(formData) {
   try {
-    const user = await getCurrentUser()
-    if (!user) {
-      alert('Lütfen önce giriş yapın.')
-      throw new Error('Kullanici girisi gerekli')
-    }
+    const session = getSession()
+    let userId = session?.id || null
 
     // Form doğrulama
     const baslik = formData.get('baslik') || ''
@@ -75,8 +86,25 @@ export async function saveData(formData) {
       return { success: false, error: 'Mahalle gerekli' }
     }
 
+    // Konuk kullanıcı doğrulaması
+    if (!userId) {
+      const konukAd = formData.get('konuk_ad') || ''
+      const konukSoyad = formData.get('konuk_soyad') || ''
+      const konukTelefon = formData.get('konuk_telefon') || ''
+      
+      if (!konukAd.trim() || !konukSoyad.trim()) {
+        alert('Lütfen adınızı ve soyadınızı girin.')
+        return { success: false, error: 'Ad ve soyad gerekli' }
+      }
+      
+      if (!konukTelefon || konukTelefon.length < 10) {
+        alert('Lütfen geçerli bir telefon numarası girin.')
+        return { success: false, error: 'Geçersiz telefon' }
+      }
+    }
+
     // Ilan kaydi olustur
-    const ilanPayload = formDataToIlan(formData, user.id)
+    const ilanPayload = formDataToIlan(formData, userId)
 
     // DEBUG: log payload to help diagnose UUID / payload issues
     console.log('DEBUG ilanPayload before insert:', ilanPayload)
@@ -108,7 +136,9 @@ export async function saveData(formData) {
     const uploadResults = []
     for (const file of files) {
       try {
-        const up = await uploadImage(file, user.id, ilanId)
+        // Konuk kullanıcı için 'guest' ID kullan
+        const uploadUserId = userId || 'guest'
+        const up = await uploadImage(file, uploadUserId, ilanId)
         if (up.error) throw up.error
 
         // Public URL'yi DB'ye yaz
@@ -152,6 +182,8 @@ export async function getIlanlar(limit = 20) {
         ilan_resimleri (resim_url, sira_no)
       `)
       .eq('onayli', true)
+      .eq('durum', 'yayinda')
+      .eq('aktif', true)
       .order('created_at', { ascending: false })
       .limit(limit)
 
@@ -167,7 +199,7 @@ export async function getIlanlar(limit = 20) {
 // 3) Kullaniciya ait ilanlar
 export async function getKullaniciIlanlari() {
   try {
-    const user = await getCurrentUser()
+    const user = getSession()
     if (!user) {
       alert('Lütfen önce giriş yapın.')
       return { success: false, error: new Error('Kullanici yok'), data: [] }
@@ -194,7 +226,7 @@ export async function getKullaniciIlanlari() {
 // 4) Ilan guncelle (sadece sahibi)
 export async function updateIlan(ilanId, updateData) {
   try {
-    const user = await getCurrentUser()
+    const user = getSession()
     if (!user) {
       alert('Lütfen önce giriş yapın.')
       return { success: false, error: new Error('Kullanici yok') }
@@ -220,7 +252,7 @@ export async function updateIlan(ilanId, updateData) {
 // 5) Ilan sil (sadece sahibi)
 export async function deleteIlan(ilanId) {
   try {
-    const user = await getCurrentUser()
+    const user = getSession()
     if (!user) {
       alert('Lütfen önce giriş yapın.')
       return { success: false, error: new Error('Kullanici yok') }

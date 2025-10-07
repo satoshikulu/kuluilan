@@ -74,31 +74,48 @@
                         <p class="mb-0">Giriş Yap veya Üye Ol</p>
                     </div>
                     <div class="auth-form">
-                        <h4 class="text-center mb-4">Giriş / Üyelik Talebi</h4>
-                        <form id="singleAuthForm" novalidate>
-                            <div class="mb-3">
-                                <label for="fullName" class="form-label">Ad Soyad</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                    <input type="text" class="form-control" id="fullName" placeholder="Adınızı ve soyadınızı girin" required>
-                                </div>
-                                <div id="nameError" class="error-message d-none"></div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="phone" class="form-label">Telefon Numarası</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                    <input type="tel" class="form-control" id="phone" placeholder="5XXXXXXXXX" pattern="[0-9]{10}" required>
-                                </div>
-                                <div id="phoneError" class="error-message d-none"></div>
-                            </div>
-                            <div class="form-text mb-3">Bilgileriniz admin onayına gönderilir. Onay sonrası sadece telefon numaranızla giriş yapabilirsiniz.</div>
-                            <div class="d-grid mb-3">
-                                <button type="submit" class="btn btn-auth btn-login">
-                                    <i class="fas fa-sign-in-alt me-2"></i>Gönder / Giriş Yap
-                                </button>
-                            </div>
-                        </form>
+                        <div class="row">
+                          <div class="col-12 col-md-6">
+                            <h4 class="text-center mb-3">Kayıt Ol</h4>
+                            <form id="signup-form" novalidate>
+                              <div class="mb-3">
+                                <label for="signup-ad" class="form-label">Ad</label>
+                                <input type="text" class="form-control" id="signup-ad" required>
+                              </div>
+                              <div class="mb-3">
+                                <label for="signup-soyad" class="form-label">Soyad</label>
+                                <input type="text" class="form-control" id="signup-soyad" required>
+                              </div>
+                              <div class="mb-3">
+                                <label for="signup-telefon" class="form-label">Telefon (10 hane)</label>
+                                <input type="tel" class="form-control" id="signup-telefon" pattern="[0-9]{10}" required placeholder="5XXXXXXXXX">
+                              </div>
+                              <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-auth btn-register"><i class="fas fa-user-plus me-2"></i>Kayıt Ol</button>
+                              </div>
+                            </form>
+                          </div>
+                          <div class="col-12 col-md-6 mt-4 mt-md-0">
+                            <h4 class="text-center mb-3">Giriş Yap</h4>
+                            <form id="login-form" novalidate>
+                              <div class="mb-3">
+                                <label for="login-ad" class="form-label">Ad</label>
+                                <input type="text" class="form-control" id="login-ad" required>
+                              </div>
+                              <div class="mb-3">
+                                <label for="login-soyad" class="form-label">Soyad</label>
+                                <input type="text" class="form-control" id="login-soyad" required>
+                              </div>
+                              <div class="mb-3">
+                                <label for="login-telefon" class="form-label">Telefon (10 hane)</label>
+                                <input type="tel" class="form-control" id="login-telefon" pattern="[0-9]{10}" required placeholder="5XXXXXXXXX">
+                              </div>
+                              <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-auth btn-login"><i class="fas fa-sign-in-alt me-2"></i>Giriş Yap</button>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
                         
                         <!-- Success Message -->
                         <div id="successMessage" class="alert alert-success d-none" role="alert">
@@ -113,111 +130,10 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="env.js"></script>
-    <script type="module">
-        import { supabase, getCurrentUser, updateUserProfile } from './supabase-config.js';
-
-        // Hide all messages
-        function hideMessages() {
-            document.getElementById('successMessage').classList.add('d-none');
-            document.getElementById('errorMessage').classList.add('d-none');
-        }
-        
-        // Show success message
-        function showSuccess(message) {
-            document.getElementById('successMessageText').textContent = message;
-            document.getElementById('successMessage').classList.remove('d-none');
-            document.getElementById('errorMessage').classList.add('d-none');
-        }
-        
-        // Show error message
-        function showError(message) {
-            document.getElementById('errorMessageText').textContent = message;
-            document.getElementById('errorMessage').classList.remove('d-none');
-            document.getElementById('successMessage').classList.add('d-none');
-        }
-        
-        // Clear all errors
-        function clearErrors() {
-            document.querySelectorAll('.error-message').forEach(el => {
-                el.classList.add('d-none');
-                el.textContent = '';
-            });
-        }
-        
-        // Validate phone number
-        function validatePhone(phone) {
-            const phoneRegex = /^[0-9]{10}$/;
-            return phoneRegex.test(phone);
-        }
-        // Helpers for phone-only auth
-        function phoneToEmail(phone) {
-            const env = (typeof window !== 'undefined') ? (window.__ENV || {}) : {};
-            const domain = env.SYNTHETIC_EMAIL_DOMAIN || 'example.com';
-            return `${phone}@${domain}`;
-        }
-        function derivePassword(phone) { return `kP@z-${phone}-#2025!`; }
-        
-        // Tek form akışı: Ad Soyad + Telefon → Giriş dene; yoksa kayıt et; onay kontrolü yap
-        document.getElementById('singleAuthForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            hideMessages();
-
-            const name = document.getElementById('fullName').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-
-            let ok = true;
-            if (!name) { document.getElementById('nameError').textContent = 'Ad soyad zorunludur.'; document.getElementById('nameError').classList.remove('d-none'); ok = false; }
-            else { document.getElementById('nameError').classList.add('d-none'); }
-            if (!phone || !validatePhone(phone)) { document.getElementById('phoneError').textContent = 'Telefon 10 haneli olmalı.'; document.getElementById('phoneError').classList.remove('d-none'); ok = false; }
-            else { document.getElementById('phoneError').classList.add('d-none'); }
-            if (!ok) return;
-
-            const email = phoneToEmail(phone);
-            const password = derivePassword(phone);
-
-            try {
-                // 1) Var olan kullanıcıyla giriş dene
-                let { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-                // 2) Hata invalid_credentials ise kayıt oluştur
-                if (error && (error.message || '').toLowerCase().includes('invalid')) {
-                    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
-                    if (signUpError) throw signUpError;
-                    if (signUpData.user) {
-                        // Profil oluştur / güncelle
-                        const { error: profileError } = await updateUserProfile(signUpData.user.id, { ad_soyad: name, telefon: phone, onayli: false });
-                        if (profileError) throw profileError;
-                        showSuccess('Talebiniz alındı. Admin onayı sonrası giriş yapabilirsiniz.');
-                        return;
-                    }
-                } else if (error) {
-                    throw error;
-                }
-
-                // 3) Giriş başarılı ise onay kontrolü
-                const user = data?.user || (await getCurrentUser());
-                if (!user) throw new Error('Kullanıcı oturumu açılamadı');
-                const { data: prof, error: profErr } = await supabase
-                    .from('kullanici_profilleri')
-                    .select('onayli')
-                    .eq('id', user.id)
-                    .maybeSingle();
-                if (profErr) throw profErr;
-                if (!prof || prof.onayli !== true) {
-                    await supabase.auth.signOut();
-                    showError('Hesabınız henüz admin tarafından onaylanmadı.');
-                    return;
-                }
-                showSuccess('Giriş başarılı! Yönlendiriliyorsunuz...');
-                setTimeout(() => { window.location.href = 'index.html'; }, 700);
-            } catch (err) {
-                showError('İşlem başarısız: ' + (err?.message || String(err)));
-            }
-        });
-    </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="env.js"></script>
+<script type="module" src="./signup.js"></script>
+<script type="module" src="./login.js"></script>

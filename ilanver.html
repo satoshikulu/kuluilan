@@ -45,6 +45,45 @@
             </div>
 
             <form id="ilanForm" class="space-y-6">
+                <!-- Konuk Kullanıcı Bilgileri (Üye değilse) -->
+                <div id="guestInfoSection" class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">İletişim Bilgileriniz *</h3>
+                    <p class="text-sm text-gray-600 mb-4">Üye değilseniz bilgilerinizi girin. İlanınız admin onayı sonrası yayınlanacaktır.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="konuk_ad" class="block text-sm font-medium text-gray-700">Adınız *</label>
+                            <input type="text" id="konuk_ad" name="konuk_ad"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Adınız">
+                            <div id="konuk_ad-error" class="error-message hidden"></div>
+                        </div>
+                        
+                        <div>
+                            <label for="konuk_soyad" class="block text-sm font-medium text-gray-700">Soyadınız *</label>
+                            <input type="text" id="konuk_soyad" name="konuk_soyad"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Soyadınız">
+                            <div id="konuk_soyad-error" class="error-message hidden"></div>
+                        </div>
+                        
+                        <div>
+                            <label for="konuk_telefon" class="block text-sm font-medium text-gray-700">Telefon *</label>
+                            <input type="tel" id="konuk_telefon" name="konuk_telefon" pattern="[0-9]{10}"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="5XXXXXXXXX">
+                            <div id="konuk_telefon-error" class="error-message hidden"></div>
+                        </div>
+                        
+                        <div>
+                            <label for="konuk_email" class="block text-sm font-medium text-gray-700">E-posta (Opsiyonel)</label>
+                            <input type="email" id="konuk_email" name="konuk_email"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="ornek@email.com">
+                        </div>
+                    </div>
+                </div>
+
                 <div>
                     <label for="baslik" class="block text-sm font-medium text-gray-700">İlan Başlığı *</label>
                     <input type="text" id="baslik" name="baslik" required
